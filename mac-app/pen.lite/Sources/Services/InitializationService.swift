@@ -19,38 +19,25 @@ class InitializationService {
     func performInitialization() {
         print("InitializationService: Starting initialization process")
         
-        // Step 1: Internet connectivity test
-        print("InitializationService: Step 1 - Internet connectivity test")
-        if !testInternetConnectivity() {
-            print("InitializationService: Initialization process stopped due to internet failure")
-            return
-        }
+        // Step 1: Initialize file storage
+        print("InitializationService: Step 1 - Initializing file storage")
+        let fileStorage = FileStorageService.shared
+        print("InitializationService: File storage initialized successfully")
         
-        // Step 2: Database connectivity pool initialization
-        print("InitializationService: Step 2 - Database connectivity pool initialization")
-        if !testDatabaseConnectivity() {
-            print("InitializationService: Initialization process stopped due to database failure")
-            return
-        }
+        // Step 2: Test internet connectivity (optional, app can work offline)
+        print("InitializationService: Step 2 - Testing internet connectivity")
+        let isInternetAvailable = testInternetConnectivity()
+        print("InitializationService: Internet connectivity: \(isInternetAvailable ? "Available" : "Unavailable")")
         
-        // Step 3: Automatic login and load user data
-        print("InitializationService: Step 3 - Automatic login and load user data")
-        automaticLogin()
+        // Step 3: Load AI configurations from local files
+        print("InitializationService: Step 3 - Loading AI configurations")
+        loadAIConfigurationsFromFiles()
         
         print("InitializationService: Initialization process completed successfully")
         print("InitializationService: App is ready for use")
         
-        // Test history count functionality
-        Task {
-            print("InitializationService: Testing history count functionality")
-            await ContentHistoryService.shared.testReadHistoryCount(userID: 4)
-        }
-        
-        // Load menu bar icon and its behaviors as online-logout mode if needed
-        if needsOnlineLogoutMode {
-            print("InitializationService: Loading menu bar icon as online-logout mode")
-            delegate?.setAppMode(.onlineLogout)
-        }
+        // Set app to online mode if internet is available
+        delegate?.setOnlineMode(isInternetAvailable)
     }
     
     // MARK: - Private Methods
@@ -65,114 +52,42 @@ class InitializationService {
         
         if isInternetAvailable {
             print("InitializationService: Internet connection is available")
-            print(" ********************************** PenAI Initialization Step 1: Internet Connectivity Test: PASS! **********************************")
+            print(" ********************************** PenAI Initialization: Internet Connectivity: AVAILABLE **********************************")
             internetFailure = false
-            setOnlineMode(true)
             return true
         } else {
             print("InitializationService: Internet connection is unavailable")
-            print(" ********************************** PenAI Initialization Step 1: Internet Connectivity Test: FAIL! **********************************")
-            print(" ********************************** OFFLINE-Internet-FAILURE MODE **********************************")
+            print(" ********************************** PenAI Initialization: Internet Connectivity: UNAVAILABLE **********************************")
             internetFailure = true
-            setOnlineMode(false, failureType: "internet")
-            // Load menu bar icon for offline-internet-failure mode
-            delegate?.setOnlineMode(false, failureType: "internet", internetFailure: true)
             return false
         }
     }
     
-    /// Tests database connectivity and initializes pool
-    private func testDatabaseConnectivity() -> Bool {
-        print("InitializationService: Testing database connectivity...")
-        
-        // Get the shared DatabaseConnectivityPool instance
-        let pool = DatabaseConnectivityPool.shared
-        
-        // Test database connectivity
-        let isConnected = pool.testConnectivitySync()
-        
-        if isConnected {
-            print("InitializationService: Database connection pool is ready")
-            print("InitializationService: Pool size: \(pool.poolSize)")
-            print(" ********************************** PenAI Initialization Step 2: Database Connectivity Test: PASS! **********************************")
-            databaseFailure = false
-            return true
-        } else {
-            print("InitializationService: Database connection pool initialization failed")
-            print(" ********************************** PenAI Initialization Step 2: Database Connectivity Test: FAIL! **********************************")
-            print(" ********************************** OFFLINE-DB-FAILURE MODE **********************************")
-            databaseFailure = true
-            setOnlineMode(false, failureType: "database")
-            // Load menu bar icon for offline-db-failure mode
-            delegate?.setOnlineMode(false, failureType: "database")
-            return false
-        }
-    }
+
     
-    /// Sets online mode and updates status icon
-    private func setOnlineMode(_ online: Bool, failureType: String? = nil) {
-        isOnline = online
-        
-        if online {
-            print("InitializationService: Setting online mode")
-            delegate?.setOnlineMode(true)
-        } else {
-            print("InitializationService: Setting offline mode")
-            if failureType == "internet" {
-                delegate?.setOnlineMode(false, failureType: "internet", internetFailure: true)
-            } else if failureType == "database" {
-                delegate?.setOnlineMode(false, failureType: "database")
-            }
-        }
-    }
+
     
-    /// Performs automatic login
-    private func automaticLogin() {
-        print("InitializationService: Attempting automatic login...")
+
+    
+    /// Loads AI configurations from local files
+    private func loadAIConfigurationsFromFiles() {
+        print("InitializationService: Loading AI configurations from files")
         
-        // Use AuthenticationService to attempt login
-        let authService = AuthenticationService.shared
-        
-        // Check if credentials are stored
-        if authService.hasStoredCredentials() {
-            print(" ********************************** Pre-stored Credentials Found *********************************")
-            print("InitializationService: Found stored credentials")
-            print("InitializationService: Logging in automatically...")
+        do {
+            let connections = try AIConnectionService.shared.getConnections()
+            print("InitializationService: Loaded \(connections.count) AI configurations from files")
             
-            // Run async login in a task
-            Task {
-                let (user, success) = await authService.login()
-                
-                if success, let user = user {
-                    print("InitializationService: Login successful")
-                    print("InitializationService: User: \(user.name) (\(user.email))")
-                    print("InitializationService: Retrieving personal data...")
-                    print("InitializationService: Personal data retrieved successfully")
-                    print(" ********************************** PenAI Initialization Step 3: Load User Data: PASS! **********************************")
-                    print(" ********************************** Hello, \(user.name) **********************************")
-                    // Set login status with user object
-                    delegate?.setLoginStatus(true, user: user)
-                    // Set online-login mode
-                    delegate?.setOnlineMode(true)
-                    
-                    // Load and test AI configurations for the user
-                    loadAndTestAIConfigurations(user: user)
-                } else {
-                    print(" ********************************** Auto Login Failed **********************************")
-                    print(" ********************************** ONLINE-LOGOUT MODE **********************************")
-                    print("InitializationService: Login failed with stored credentials")
-                    print("InitializationService: Opening LoginWindow for manual login")
-                    delegate?.setLoginStatus(false)
-                    delegate?.setOnlineMode(true)
-                    delegate?.openLoginWindow()
+            if connections.isEmpty {
+                print("InitializationService: No AI configurations found in files")
+                // Show message about setting up AI configurations
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    WindowManager.shared.displayPopupMessage("No AI Configuration set up yet.\nGo to Settings → AI Configuration to set up.")
                 }
+            } else {
+                print("InitializationService: AI configurations loaded successfully")
             }
-        } else {
-            print(" ********************************** No Pre-stored Credentials Found **********************************")
-            print("InitializationService: No stored credentials found")
-            print("InitializationService: Setting online-logout mode")
-            // End initialization process first, then load menu bar icon
-            needsOnlineLogoutMode = true
+        } catch {
+            print("InitializationService: Error loading AI configurations from files: \(error)")
         }
     }
     

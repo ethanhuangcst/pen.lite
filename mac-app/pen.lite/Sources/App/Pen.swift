@@ -13,23 +13,16 @@ extension NSFont {
 class PenDelegate: NSObject, NSApplicationDelegate {
     var statusItem: NSStatusItem?
     private var window: BaseWindow?
-    private var loginWindow: LoginWindow?
     private var settingsWindow: SettingsWindow?
     private var newOrEditPromptWindow: NewOrEditPrompt?
     private var tmpWindow: TmpWindow?
     private var penWindowService: PenWindowService?
-    var shortcutService: ShortcutService?
     private var windowManager: WindowManager = WindowManager.shared
 
     private let windowWidth: CGFloat = 378
     private let windowHeight: CGFloat = 388
     private let mouseOffset: CGFloat = 6
     private var isOnline: Bool = false
-    private var internetFailure: Bool = false
-    private var databaseFailure: Bool = false
-    private var isLoggedIn: Bool = false
-    private var userName: String = ""
-    var currentUser: User? = nil
     
     func applicationDidFinishLaunching(_ notification: Notification) {
         print("SimpleAppDelegate: Application launched")
@@ -56,9 +49,6 @@ class PenDelegate: NSObject, NSApplicationDelegate {
         
         // Perform 3-step initialization process
         performInitialization()
-        
-        // Setup shortcut key functionality
-        setupShortcutKey()
     }
     
     @objc private func performInitialization() {
@@ -71,17 +61,8 @@ class PenDelegate: NSObject, NSApplicationDelegate {
         
         if online {
             print("PenDelegate: Setting online mode")
-            self.internetFailure = false
-            databaseFailure = false
         } else {
             print("PenDelegate: Setting offline mode")
-            if failureType == "internet" {
-                self.internetFailure = internetFailure
-                print("PenDelegate: Setting 'Internet Failure' flag to \(internetFailure)")
-            } else if failureType == "database" {
-                databaseFailure = true
-                print("PenDelegate: Setting 'Database Failure' flag to true")
-            }
         }
         
         // Only update status icon if statusItem is initialized
@@ -91,13 +72,8 @@ class PenDelegate: NSObject, NSApplicationDelegate {
         if !online {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
                 if let self = self {
-                    if failureType == "internet" && internetFailure {
-                        // Display internet failure message
-                        self.displayPopupMessage(LocalizationService.shared.localizedString(for: "internet_failure"))
-                    } else if failureType == "database" {
-                        // Display database failure message
-                        self.displayPopupMessage(LocalizationService.shared.localizedString(for: "database_failure"))
-                    }
+                    // Display offline message
+                    self.displayPopupMessage(LocalizationService.shared.localizedString(for: "pen_ai_offline"))
                 }
             }
         }
@@ -122,21 +98,11 @@ class PenDelegate: NSObject, NSApplicationDelegate {
             resizedIcon.isTemplate = true
             button.image = resizedIcon
             
-            var tooltip: String
+            let tooltip: String
             if online {
-                if isLoggedIn {
-                    tooltip = LocalizationService.shared.localizedString(for: "hello_user", withFormat: userName)
-                } else {
-                    tooltip = LocalizationService.shared.localizedString(for: "hello_guest")
-                }
+                tooltip = LocalizationService.shared.localizedString(for: "hello_guest")
             } else {
-                if internetFailure {
-                    tooltip = LocalizationService.shared.localizedString(for: "internet_failure")
-                } else if databaseFailure {
-                    tooltip = LocalizationService.shared.localizedString(for: "database_failure")
-                } else {
-                    tooltip = LocalizationService.shared.localizedString(for: "pen_ai_offline")
-                }
+                tooltip = LocalizationService.shared.localizedString(for: "pen_ai_offline")
             }
             
             button.toolTip = tooltip
@@ -146,21 +112,7 @@ class PenDelegate: NSObject, NSApplicationDelegate {
         }
     }
     
-    private func checkAccessibilityPermissions() {
-        print("SimpleAppDelegate: Checking accessibility permissions...")
-        
-        // Check if accessibility is enabled
-        let options: NSDictionary = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as NSString: true]
-        let isTrusted = AXIsProcessTrustedWithOptions(options)
-        
-        if isTrusted {
-            print("SimpleAppDelegate: Accessibility permissions are enabled")
-        } else {
-            print("SimpleAppDelegate: Accessibility permissions are not enabled")
-            print("SimpleAppDelegate: Please enable accessibility permissions in System Preferences")
-            print("SimpleAppDelegate: System Preferences > Security & Privacy > Privacy > Accessibility")
-        }
-    }
+
     
     private func createMainWindow() {
         print("SimpleAppDelegate: Creating main window")
@@ -292,30 +244,19 @@ class PenDelegate: NSObject, NSApplicationDelegate {
                 if !isOnline {
                     displayReloadOption()
                     performInitialization()
-                } else if isLoggedIn {
-                    openWindow()
                 } else {
-                    openLoginWindow()
+                    openWindow()
                 }
             } else if event.type == .rightMouseUp {
                 let menu = NSMenu()
                 
-                if isOnline && isLoggedIn {
+                if isOnline {
                     menu.addItem(NSMenuItem(title: LocalizationService.shared.localizedString(for: "preferences"), action: #selector(openSettings), keyEquivalent: "p"))
-                    menu.addItem(NSMenuItem(title: LocalizationService.shared.localizedString(for: "logout"), action: #selector(logout), keyEquivalent: "l"))
-                    menu.addItem(NSMenuItem.separator())
-                } else if isOnline && !isLoggedIn {
-                    // Online-logout mode: Show login and exit
-                    menu.addItem(NSMenuItem(title: LocalizationService.shared.localizedString(for: "login"), action: #selector(openLoginWindow), keyEquivalent: "l"))
                     menu.addItem(NSMenuItem.separator())
                 } else {
-                    // Offline mode: Show reload and exit
                     menu.addItem(NSMenuItem(title: LocalizationService.shared.localizedString(for: "reload"), action: #selector(performInitialization), keyEquivalent: "r"))
                     menu.addItem(NSMenuItem.separator())
                 }
-                
-                menu.addItem(NSMenuItem(title: "Open TmpWindow", action: #selector(openTmpWindow), keyEquivalent: "t"))
-                menu.addItem(NSMenuItem.separator())
                 
                 // Always show exit option
                 menu.addItem(NSMenuItem(title: LocalizationService.shared.localizedString(for: "exit"), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
@@ -328,34 +269,6 @@ class PenDelegate: NSObject, NSApplicationDelegate {
         }
     }
     
-    @objc internal func logout() {
-        print("PenDelegate: User logged out")
-        
-        // 1. Close all app windows
-        closeOtherWindows()
-        
-        // 2. Reset window references
-        settingsWindow = nil
-        newOrEditPromptWindow = nil
-        
-        // 3. Clean up user information, including AI configurations and prompts
-        // Reset AIManager to remove all configurations
-        UserService.shared.aiManager?.reset()
-        print("PenDelegate: Reset AIManager instance")
-        
-        // 4. Remove the local global user object and clean up other system resources
-        setLoginStatus(false)
-        
-        // 5. Set Pen as online-logout mode without showing the hello_guest popup
-        setAppMode(.onlineLogout, showPopup: false)
-        
-        // 6. Display i18n logout message
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            self.displayPopupMessage("User logged out. Please log in again to use Pen.")
-        }
-    }
-    
-
     
     /// Positions a window relative to the Pen menu bar icon
     private func positionWindowRelativeToMenuBarIcon(_ window: NSWindow) {
@@ -423,7 +336,7 @@ class PenDelegate: NSObject, NSApplicationDelegate {
         if let window = settingsWindow {
             window.showAndFocus()
         } else {
-            settingsWindow = SettingsWindow(user: currentUser)
+            settingsWindow = SettingsWindow(user: nil)
             
             if let window = settingsWindow {
                 window.showAndFocus()
@@ -451,7 +364,7 @@ class PenDelegate: NSObject, NSApplicationDelegate {
     }
     
     @objc private func openWindow() {
-        if !isOnline || !isLoggedIn {
+        if !isOnline {
             return
         }
         
@@ -488,78 +401,12 @@ class PenDelegate: NSObject, NSApplicationDelegate {
         }
         
         window = nil
-        loginWindow = nil
         settingsWindow = nil
         newOrEditPromptWindow = nil
         tmpWindow = nil
     }
     
-    private func setupShortcutKey() {
-        print("SimpleAppDelegate: Setting up shortcut key")
-        
-        checkAccessibilityPermissions()
-        
-        let defaults = UserDefaults.standard
-        let shortcutKeyDefaultsKey = "pen.shortcutKey"
-        let defaultShortcut = "Command+Option+P"
-        let savedShortcut = defaults.string(forKey: shortcutKeyDefaultsKey) ?? defaultShortcut
-        
-        if let (keyCode, modifiers) = shortcutStringToKeyCodeAndModifiers(shortcut: savedShortcut) {
-            shortcutService = ShortcutService()
-            shortcutService?.registerShortcut(keyCode: keyCode, modifiers: modifiers)
-        } else {
-            shortcutService = ShortcutService()
-            shortcutService?.registerShortcut(keyCode: 35, modifiers: UInt32(cmdKey | optionKey))
-        }
-    }
-    
-    private func shortcutStringToKeyCodeAndModifiers(shortcut: String) -> (UInt32, UInt32)? {
-        let components = shortcut.split(separator: "+").map { $0.trimmingCharacters(in: .whitespaces) }
-        
-        if components.count < 2 {
-            return nil
-        }
-        
-        // Extract modifiers
-        var modifiers: UInt32 = 0
-        for component in components.dropLast() {
-            switch component {
-            case "Command":
-                modifiers |= UInt32(cmdKey)
-            case "Option":
-                modifiers |= UInt32(optionKey)
-            case "Shift":
-                modifiers |= UInt32(shiftKey)
-            case "Control":
-                modifiers |= UInt32(controlKey)
-            default:
-                return nil
-            }
-        }
-        
-        // Extract key
-        let key = components.last!
-        let keyCode = keyToKeyCode(key)
-        if keyCode == 0 {
-            return nil
-        }
-        
-        return (keyCode, modifiers)
-    }
-    
-    private func keyToKeyCode(_ key: String) -> UInt32 {
-        // Map key strings to key codes
-        let keyMap: [String: UInt32] = [
-            "A": 0, "B": 11, "C": 8, "D": 2, "E": 14, "F": 3, "G": 5, "H": 4, "I": 34, "J": 38,
-            "K": 40, "L": 37, "M": 46, "N": 45, "O": 31, "P": 35, "Q": 12, "R": 15, "S": 1, "T": 17,
-            "U": 32, "V": 9, "W": 13, "X": 7, "Y": 16, "Z": 6,
-            "0": 29, "1": 18, "2": 19, "3": 20, "4": 21, "5": 23, "6": 22, "7": 26, "8": 28, "9": 25,
-            "Space": 49, "Return": 36, "Tab": 48, "Delete": 51, "Escape": 53,
-            "Left": 123, "Right": 124, "Down": 125, "Up": 126
-        ]
-        
-        return keyMap[key] ?? 0
-    }
+
     
     private func positionWindowRelativeToMouseCursor(_ window: NSWindow) {
         let mouseLocation = NSEvent.mouseLocation
@@ -597,7 +444,7 @@ class PenDelegate: NSObject, NSApplicationDelegate {
     }
     
     @objc private func openPenAI() {
-        if !isOnline || !isLoggedIn {
+        if !isOnline {
             return
         }
         
@@ -625,7 +472,7 @@ class PenDelegate: NSObject, NSApplicationDelegate {
     }
     
     func toggleMainWindow() {
-        if !isOnline || !isLoggedIn {
+        if !isOnline {
             return
         }
         
@@ -660,43 +507,18 @@ class PenDelegate: NSObject, NSApplicationDelegate {
         window?.orderOut(nil)
     }
     
-    @objc func openLoginWindow() {
-        closeOtherWindows()
-        
-        if loginWindow == nil {
-            loginWindow = LoginWindow(menuBarIconFrame: nil, penDelegate: self)
-        }
-        
-        if let window = loginWindow {
-            positionWindowRelativeToMenuBarIcon(window)
-            window.showAndFocus()
-        }
-    }
     
     /// Sets the app mode and updates the UI accordingly
     func setAppMode(_ mode: AppMode, showPopup: Bool = true) {
         switch mode {
-        case .onlineLogin:
+        case .online:
             isOnline = true
-            isLoggedIn = true
-        case .onlineLogout:
-            isOnline = true
-            isLoggedIn = false
         case .offline:
             isOnline = false
-            isLoggedIn = false
         }
         
         // Update the menu bar icon
         updateStatusIcon(online: isOnline)
-        
-        // Display appropriate popup message based on mode
-        if mode == .onlineLogout && showPopup {
-            // Delay popup to give menu bar icon time to position itself
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                self.displayPopupMessage(LocalizationService.shared.localizedString(for: "hello_guest"))
-            }
-        }
     }
     
     /// Updates the menu bar icon based on current state
@@ -704,100 +526,10 @@ class PenDelegate: NSObject, NSApplicationDelegate {
         updateStatusIcon(online: isOnline)
     }
     
-    /// Creates a global user object
-    func createGlobalUserObject(user: User) {
-        // Store user information and trigger login status update
-        setLoginStatus(true, user: user)
-        
-        // Load and test AI configurations for the user
-        loadAndTestAIConfigurations(user: user)
-    }
-    
-    /// Loads and tests AI configurations for the user
-    private func loadAndTestAIConfigurations(user: User) {
-        print("PenDelegate: loadAndTestAIConfigurations called for user \(user.name) with email \(user.email)")
-        Task.detached {
-            do {
-                // Load all AI configurations for the user
-                guard let aiManager = UserService.shared.aiManager else {
-                    print("PenDelegate: AIManager not initialized")
-                    return
-                }
-                let configurations = try await aiManager.getConnections(for: user.id)
-                
-                if configurations.isEmpty {
-                    try await Task.sleep(nanoseconds: 3_300_000_000)
-                    WindowManager.shared.displayPopupMessage(LocalizationService.shared.localizedString(for: "no_ai_configuration"))
-                } else {
-                    for (index, configuration) in configurations.enumerated() {
-                        do {
-                            let _ = try await aiManager.testConnection(
-                                apiKey: configuration.apiKey,
-                                providerName: configuration.apiProvider
-                            )
-                        } catch {
-                        }
-                    }
-                }
-            } catch {
-            }
-        }
-    }
-    
-    /// Sets the login status and updates the menu bar icon
-    func setLoginStatus(_ loggedIn: Bool, user: User? = nil, userName: String = "") {
-        isLoggedIn = loggedIn
-        if let user = user {
-            self.userName = user.name
-            self.currentUser = user
-            UserService.shared.login(user: user)
-        } else if !userName.isEmpty {
-            self.userName = userName
-        } else if !loggedIn {
-            self.userName = ""
-            self.currentUser = nil
-            UserService.shared.logout()
-        }
-        
-        updateStatusIcon(online: isOnline)
-        updateWindowTitle()
-        
-        // Wait until menu bar icon is fully loaded before displaying popup message
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-                // Display appropriate popup message
-                if loggedIn {
-                    let greeting = LocalizationService.shared.localizedString(for: "hello_user", withFormat: self?.userName ?? "")
-                    self?.displayPopupMessage(greeting)
-                    
-                    // Update user label in Pen window to show profile image
-                    self?.penWindowService?.updateUserLabel()
-                } else {
-                    // Don't display hello_guest message here, as we'll show the logout message in the logout() method
-                }
-            }
-    }
-    
-    /// Updates the window title with the username
-    private func updateWindowTitle() {
-        guard let window = window, let contentView = window.contentView else { return }
-        
-        // Perform UI operations on the main thread
-        DispatchQueue.main.async {
-            // Remove existing title label
-            for subview in contentView.subviews {
-                if let label = subview as? NSTextField, label.font?.isBold == true {
-                    label.removeFromSuperview()
-                }
-            }
-            
-            // No title label added - title has been removed as requested
-        }
-    }
     
     // App mode enumeration
     enum AppMode {
-        case onlineLogin
-        case onlineLogout
+        case online
         case offline
     }
     

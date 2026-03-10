@@ -83,25 +83,20 @@ class PromptsTabView: NSView, NSTableViewDataSource, NSTableViewDelegate {
         setupTableView()
         setupActionButtons()
         
-        // Load prompts from database
-        loadPromptsFromDatabase()
+        // Load prompts from files
+        loadPromptsFromFiles()
     }
     
-    private func loadPromptsFromDatabase() {
-        guard let userId = user?.id else {
-            print("[PromptsTabView] No user ID available")
-            return
-        }
-        
+    private func loadPromptsFromFiles() {
         Task {
             do {
-                let loadedPrompts = try await promptsService.getPromptsByUserId(userId: userId)
+                let loadedPrompts = try PromptService.shared.getPrompts()
                 DispatchQueue.main.async {
-                    // Sort prompts: Default Prompt first, then others by creation date descending
+                    // Sort prompts: Default Prompt first, then others by name
                     self.prompts = loadedPrompts.sorted { (p1, p2) in
                         if p1.isDefault { return true }
                         if p2.isDefault { return false }
-                        return p1.createdDatetime > p2.createdDatetime
+                        return p1.promptName < p2.promptName
                     }
                     self.tableView.reloadData()
                     self.updateEmptyStateView()
@@ -444,24 +439,17 @@ class PromptsTabView: NSView, NSTableViewDataSource, NSTableViewDelegate {
             // Open edit window as a normal window
             let editWindow = NewOrEditPrompt(prompt: prompt, originatingWindow: parentWindow)
             editWindow.onSave = { updatedPrompt in
-                guard let userId = self.user?.id else {
-                    print("[PromptsTabView] No user ID available")
-                    return
-                }
-                
                 Task {
                     do {
-                        // Update prompt in database
-                        try await self.promptsService.updatePrompt(
-                            id: updatedPrompt.id,
-                            promptName: updatedPrompt.promptName,
-                            promptText: updatedPrompt.promptText,
-                            isDefault: updatedPrompt.isDefault
+                        // Update prompt in files
+                        try PromptService.shared.updatePrompt(
+                            name: updatedPrompt.promptName,
+                            text: updatedPrompt.promptText
                         )
                         
                         DispatchQueue.main.async {
-                            // Reload all prompts to ensure correct default statuses
-                            self.loadPromptsFromDatabase()
+                            // Reload all prompts
+                            self.loadPromptsFromFiles()
                             WindowManager.shared.displayPopupMessage(LocalizationService.shared.localizedString(for: "prompt_updated_successfully"))
                         }
                     } catch {
@@ -622,8 +610,8 @@ class PromptsTabView: NSView, NSTableViewDataSource, NSTableViewDelegate {
             
             Task {
                 do {
-                    // Delete prompt from database
-                    try await promptsService.deletePrompt(id: prompt.id)
+                    // Delete prompt from files
+                    try PromptService.shared.deletePrompt(name: prompt.promptName)
                     
                     DispatchQueue.main.async {
                         // Delete the prompt from the array
@@ -647,24 +635,17 @@ class PromptsTabView: NSView, NSTableViewDataSource, NSTableViewDelegate {
             // Open NewOrEditPrompt as a normal window
             let newPromptWindow = NewOrEditPrompt(prompt: nil, originatingWindow: parentWindow)
             newPromptWindow.onSave = { newPrompt in
-                guard let userId = self.user?.id else {
-                    print("[PromptsTabView] No user ID available")
-                    return
-                }
-                
                 Task {
                     do {
-                        // Create prompt in database
-                        let createdPrompt = try await self.promptsService.createPrompt(
-                            userId: userId,
-                            promptName: newPrompt.promptName,
-                            promptText: newPrompt.promptText,
-                            isDefault: newPrompt.isDefault
+                        // Create prompt in files
+                        try PromptService.shared.createPrompt(
+                            name: newPrompt.promptName,
+                            text: newPrompt.promptText
                         )
                         
                         DispatchQueue.main.async {
-                            // Reload all prompts to ensure correct default statuses
-                            self.loadPromptsFromDatabase()
+                            // Reload all prompts
+                            self.loadPromptsFromFiles()
                             WindowManager.shared.displayPopupMessage(LocalizationService.shared.localizedString(for: "prompt_created_successfully"))
                         }
                     } catch {

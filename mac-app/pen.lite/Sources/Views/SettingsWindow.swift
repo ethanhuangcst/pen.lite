@@ -55,7 +55,7 @@ class SettingsWindow: BaseWindow {
     private func updateTabLabels() {
         guard let tabView = tabView else { return }
         
-        let tabKeys = ["account", "general", "ai_connections", "prompts", "history"]
+        let tabKeys = ["ai_connections", "prompts"]
         for (index, key) in tabKeys.enumerated() {
             if index < tabView.numberOfTabViewItems {
                 let tabItem = tabView.tabViewItem(at: index)
@@ -71,16 +71,10 @@ class SettingsWindow: BaseWindow {
             if let tabItem = tabView.tabViewItem(at: i) as? NSTabViewItem,
                let tabContentView = tabItem.view {
                 for subview in tabContentView.subviews {
-                    if let accountTab = subview as? AccountTabView {
-                        accountTab.languageDidChange()
-                    } else if let generalTab = subview as? GeneralTabView {
-                        generalTab.languageDidChange()
-                    } else if let aiConfigTab = subview as? AIConfigurationTabView {
+                    if let aiConfigTab = subview as? AIConfigurationTabView {
                         aiConfigTab.languageDidChange()
                     } else if let promptsTab = subview as? PromptsTabView {
                         promptsTab.languageDidChange()
-                    } else if let historyTab = subview as? HistoryTabView {
-                        historyTab.languageDidChange()
                     }
                 }
             }
@@ -138,11 +132,8 @@ class SettingsWindow: BaseWindow {
         tabView = NSTabView(frame: NSRect(x: 0, y: 0, width: userSettingsFrame.frame.width, height: userSettingsFrame.frame.height))
         
         // Create tabs
-        addTab(to: tabView, title: LocalizationService.shared.localizedString(for: "account"), iconPath: ResourceService.shared.getResourcePath(relativePath: "Assets/account.png"))
-        addTab(to: tabView, title: LocalizationService.shared.localizedString(for: "general"), iconPath: ResourceService.shared.getResourcePath(relativePath: "Assets/settings.png"))
         addTab(to: tabView, title: LocalizationService.shared.localizedString(for: "ai_connections"), iconPath: ResourceService.shared.getResourcePath(relativePath: "Assets/AI.png"))
         addTab(to: tabView, title: LocalizationService.shared.localizedString(for: "prompts"), iconPath: ResourceService.shared.getResourcePath(relativePath: "Assets/prompts.png"))
-        addTab(to: tabView, title: LocalizationService.shared.localizedString(for: "history"), iconPath: ResourceService.shared.getResourcePath(relativePath: "Assets/account.png"))
         
         userSettingsFrame.addSubview(tabView)
         contentView.addSubview(userSettingsFrame)
@@ -162,19 +153,9 @@ class SettingsWindow: BaseWindow {
         tabContentView.layer?.backgroundColor = ColorService.shared.backgroundColorCGColor
         
         // Add content based on tab title
-        if title == LocalizationService.shared.localizedString(for: "account") {
-            // Use the new AccountTabView
-            let accountTabView = AccountTabView(frame: tabContentView.bounds, user: user, parentWindow: self)
-            tabContentView.addSubview(accountTabView)
-        } else if title == LocalizationService.shared.localizedString(for: "general") {
-            // Use the new GeneralTabView
-            let generalTabView = GeneralTabView(frame: tabContentView.bounds, parentWindow: self)
-            tabContentView.addSubview(generalTabView)
-        } else if title == LocalizationService.shared.localizedString(for: "ai_connections") {
+        if title == LocalizationService.shared.localizedString(for: "ai_connections") {
             // Use the new AIConfigurationTabView
-            let databasePool = DatabaseConnectivityPool.shared
-            
-            let aiConfigurationTabView = AIConfigurationTabView(frame: tabContentView.bounds, user: user, databasePool: databasePool, parentWindow: self)
+            let aiConfigurationTabView = AIConfigurationTabView(frame: tabContentView.bounds, user: user, parentWindow: self)
             if let userName = user?.name {
                 aiConfigurationTabView.setUserName(userName)
             }
@@ -183,10 +164,6 @@ class SettingsWindow: BaseWindow {
             // Use the new PromptsTabView
             let promptsTabView = PromptsTabView(frame: tabContentView.bounds, user: user, parentWindow: self)
             tabContentView.addSubview(promptsTabView)
-        } else if title == LocalizationService.shared.localizedString(for: "history") {
-            // Use the new HistoryTabView
-            let historyTabView = HistoryTabView(frame: tabContentView.bounds, parentWindow: self)
-            tabContentView.addSubview(historyTabView)
         }
         
         tabItem.view = tabContentView

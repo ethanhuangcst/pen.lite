@@ -186,51 +186,31 @@ class PenWindowService {
     private func loadAIConfigurations() async {
         guard let window = window else { return }
         
-        guard let aiManager = userService.aiManager else {
-            if let user = userService.currentUser {
-                await loadPrompts()
-            }
-            await handleNoAIProviders()
-            return
-        }
+        // Load prompts regardless of AI configuration status
+        await loadPrompts()
         
-        if !aiManager.isInitialized {
-            aiManager.initialize()
-        }
-        
-        // Load AI configurations for the current user
+        // Load AI configurations from local files
         do {
-            guard let user = userService.currentUser else {
-                // No user logged in
-                await handleNoAIProviders()
-                return
-            }
+            let connections = try AIConnectionService.shared.getConnections()
             
-            // Load prompts regardless of AI configuration status
-            await loadPrompts()
-            
-            // Get user's AI configurations
-            let configurations = try await aiManager.getConnections(for: user.id)
-            
-            if configurations.isEmpty {
-                // No AI configurations for this user
+            if connections.isEmpty {
+                // No AI configurations found
                 await handleNoAIProviders()
             } else {
-                // Get all available providers
-                let allProviders = try await aiManager.getProviders()
-                
-                // Order providers by the order of user's connections (same as AIConfigurationTabView)
-                let orderedProviders: [AIProvider] = configurations.compactMap { config in
-                    allProviders.first { $0.name == config.apiProvider }
+                // Create AIProvider objects from connections
+                let providers: [AIProvider] = connections.map { connection in
+                    AIProvider(
+                        id: 1,
+                        name: connection.apiProvider,
+                        baseURLs: ["default": connection.apiUrl],
+                        defaultModel: connection.model,
+                        requiresAuth: true,
+                        authHeader: "Authorization"
+                    )
                 }
                 
-                if orderedProviders.isEmpty {
-                    // No matching providers found
-                    await handleNoAIProviders()
-                } else {
-                    // Populate AI providers dropdown with user's configured providers in connection order
-                    await populateProvidersDropdown(providers: orderedProviders)
-                }
+                // Populate AI providers dropdown with user's configured providers
+                await populateProvidersDropdown(providers: providers)
             }
         } catch {
             // Handle AI configuration load failure
@@ -240,10 +220,8 @@ class PenWindowService {
     }
     
     private func loadPrompts() async {
-        guard let user = userService.currentUser else { return }
-        
         do {
-            let prompts = try await promptsService.getPromptsByUserId(userId: user.id)
+            let prompts = try PromptService.shared.getPrompts()
             await populatePromptsDropdown(prompts: prompts)
         } catch {
             print("[PenWindowService] Failed to load prompts: \(error)")
@@ -1354,9 +1332,7 @@ class PenWindowService {
                 aiProvider: selectedProvider.name
             )
             
-            Task {
-                let _ = await ContentHistoryService.shared.addToHistoryByUserID(history: historyModel, userID: user.id)
-            }
+
         } catch {
             print("[PenWindowService] Failed to enhance text: \(error)")
             await MainActor.run {

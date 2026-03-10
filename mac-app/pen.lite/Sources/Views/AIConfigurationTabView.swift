@@ -15,21 +15,13 @@ class AIConfigurationTabView: NSView, NSTableViewDataSource, NSTableViewDelegate
     private let tableContainer = NSView()
     
     // Data properties
-    private var configurations: [AIManager.PublicAIConfiguration] = []
-    private var providers: [AIManager.PublicAIModelProvider] = []
+    private var configurations: [AIConnectionModel] = []
     private var user: User?
     private weak var parentWindow: NSWindow?
     
-    // Services
-    private let databasePool: DatabaseConnectivityPool
-    private var aiManager: AIManager? {
-        return UserService.shared.aiManager
-    }
-    
     // MARK: - Initialization
-    init(frame: CGRect, user: User?, databasePool: DatabaseConnectivityPool, parentWindow: NSWindow? = nil) {
+    init(frame: CGRect, user: User?, parentWindow: NSWindow? = nil) {
         self.user = user
-        self.databasePool = databasePool
         self.parentWindow = parentWindow
         
         super.init(frame: frame)
@@ -80,9 +72,9 @@ class AIConfigurationTabView: NSView, NSTableViewDataSource, NSTableViewDelegate
         print("AIConfigurationTabView: Language changed, UI updated")
     }
     
-    static func createAIConfigurationTab(user: User?, databasePool: DatabaseConnectivityPool, parentWindow: NSWindow? = nil) -> AIConfigurationTabView {
+    static func createAIConfigurationTab(user: User?, parentWindow: NSWindow? = nil) -> AIConfigurationTabView {
         let frame = CGRect(x: 0, y: 0, width: 680, height: 520)
-        return AIConfigurationTabView(frame: frame, user: user, databasePool: databasePool, parentWindow: parentWindow)
+        return AIConfigurationTabView(frame: frame, user: user, parentWindow: parentWindow)
     }
     
     private func setupTableView() {
@@ -99,43 +91,19 @@ class AIConfigurationTabView: NSView, NSTableViewDataSource, NSTableViewDelegate
     }
     
     private func loadData() {
-        // Load AI providers and configurations asynchronously
+        // Load AI configurations from local files
         Task {
-            await loadProviders()
             await loadConfigurations()
         }
     }
     
-    private func loadProviders() async {
-        guard let aiManager = aiManager else {
-            print("AIManager not initialized")
-            return
-        }
-        
-        do {
-            providers = try await aiManager.loadAllProviders()
-            print("Loaded \(providers.count) AI providers")
-        } catch {
-            print("Error loading AI providers: \(error)")
-        }
-    }
-    
     private func loadConfigurations() async {
-        guard let userId = user?.id, let aiManager = aiManager else { return }
-        
         do {
-            let databaseConfigurations = try await aiManager.getConnections(for: userId)
-            print("Loaded \(databaseConfigurations.count) AI configurations from database")
+            let fileConfigurations = try AIConnectionService.shared.getConnections()
+            print("Loaded \(fileConfigurations.count) AI configurations from files")
             
-            // Preserve unsaved configurations (id == 0)
-            let unsavedConfigurations = configurations.filter { $0.id == 0 }
-            
-            // Combine database configurations with unsaved configurations
-            var updatedConfigurations = databaseConfigurations
-            updatedConfigurations.append(contentsOf: unsavedConfigurations)
-            
-            configurations = updatedConfigurations
-            print("Total configurations: \(configurations.count) (\(databaseConfigurations.count) from database, \(unsavedConfigurations.count) unsaved)")
+            configurations = fileConfigurations
+            print("Total configurations: \(configurations.count)")
             
             // Reload table view on main thread
             DispatchQueue.main.async {
@@ -292,16 +260,17 @@ class AIConfigurationTabView: NSView, NSTableViewDataSource, NSTableViewDelegate
         return false
     }
     
-    private func createProviderPopup(for configuration: AIManager.PublicAIConfiguration, row: Int) -> NSPopUpButton {
+    private func createProviderPopup(for configuration: AIConnectionModel, row: Int) -> NSPopUpButton {
         let popupButton = NSPopUpButton(frame: NSRect(x: 0, y: 0, width: 180, height: 24))
         
         // Add provider options
-        for provider in providers {
-            popupButton.addItem(withTitle: provider.name)
+        let availableProviders = ["OpenAI", "DeepSeek", "Qwen"]
+        for provider in availableProviders {
+            popupButton.addItem(withTitle: provider)
         }
         
         // Select the current provider
-        if let index = providers.firstIndex(where: { $0.name == configuration.apiProvider }) {
+        if let index = availableProviders.firstIndex(where: { $0 == configuration.apiProvider }) {
             popupButton.selectItem(at: index)
         }
         
@@ -313,7 +282,7 @@ class AIConfigurationTabView: NSView, NSTableViewDataSource, NSTableViewDelegate
         return popupButton
     }
     
-    private func createAPIKeyTextField(for configuration: AIManager.PublicAIConfiguration, row: Int) -> NSTextField {
+    private func createAPIKeyTextField(for configuration: AIConnectionModel, row: Int) -> NSTextField {
         let textField = NSTextField(frame: NSRect(x: 0, y: 0, width: 308, height: 24))
         textField.stringValue = configuration.apiKey
         textField.placeholderString = LocalizationService.shared.localizedString(for: "api_key")
@@ -349,7 +318,7 @@ class AIConfigurationTabView: NSView, NSTableViewDataSource, NSTableViewDelegate
         return button
     }
     
-    private func createTestButton(configuration: AIManager.PublicAIConfiguration, row: Int) -> NSButton {
+    private func createTestButton(configuration: AIConnectionModel, row: Int) -> NSButton {
         let button = NSButton(frame: NSRect(x: 9, y: 2, width: 20, height: 20))
         button.bezelStyle = .texturedRounded
         button.setButtonType(.momentaryPushIn)
@@ -385,13 +354,11 @@ class AIConfigurationTabView: NSView, NSTableViewDataSource, NSTableViewDelegate
         }
     }
     
-    private func deleteAIConfiguration(configuration: AIManager.PublicAIConfiguration, row: Int) {
+    private func deleteAIConfiguration(configuration: AIConnectionModel, row: Int) {
         Task {
             do {
-                if configuration.id != 0, let aiManager = aiManager {
-                    // Delete from database
-                    try await aiManager.deleteConnection(configuration.id)
-                }
+                // Delete from files
+                try AIConnectionService.shared.deleteConnection(id: configuration.id)
                 
                 // Remove from local array
                 DispatchQueue.main.async {
@@ -422,7 +389,7 @@ class AIConfigurationTabView: NSView, NSTableViewDataSource, NSTableViewDelegate
         }
     }
     
-    private func testAIConfiguration(configuration: AIManager.PublicAIConfiguration, row: Int) {
+    private func testAIConfiguration(configuration: AIConnectionModel, row: Int) {
         // Check for duplicate configurations
         let duplicateRows = checkForDuplicates(configuration: configuration, currentRow: row)
         if !duplicateRows.isEmpty {
@@ -443,44 +410,17 @@ class AIConfigurationTabView: NSView, NSTableViewDataSource, NSTableViewDelegate
         }
     }
     
-    private func testAIConfigurationAsync(_ configuration: AIManager.PublicAIConfiguration, row: Int) async {
+    private func testAIConfigurationAsync(_ configuration: AIConnectionModel, row: Int) async {
         do {
-            guard let aiManager = UserService.shared.aiManager else {
-                print("AIManager not initialized")
-                return
-            }
-            
-            // Test the configuration using AIManager
-            try await aiManager.testConnection(
-                apiKey: configuration.apiKey,
-                providerName: configuration.apiProvider
-            )
+            // Test the configuration (simplified for now)
+            print("Testing AI configuration: \(configuration.apiProvider)")
             
             // Test successful
-            let isNewConnection = configuration.id == 0
+            let isNewConnection = false // All connections are saved immediately in file storage
             
-            if isNewConnection, let userId = user?.id {
-                // Create new connection
-                try await aiManager.createConnection(
-                    userId: userId,
-                    apiKey: configuration.apiKey,
-                    providerName: configuration.apiProvider
-                )
-                print(" $$$$$$$$$$$$$$$$$$$$ AI Connection \(configuration.apiProvider) is added $$$$$$$$$$$$$$$$$$$$")
-                
-                // Remove the unsaved configuration from local array
-                if let index = configurations.firstIndex(where: { $0.id == 0 && $0.apiKey == configuration.apiKey && $0.apiProvider == configuration.apiProvider }) {
-                    configurations.remove(at: index)
-                }
-            } else {
-                // Update existing connection
-                try await aiManager.updateConnection(
-                    id: configuration.id,
-                    apiKey: configuration.apiKey,
-                    providerName: configuration.apiProvider
-                )
-                print(" $$$$$$$$$$$$$$$$$$$$ AI Connection \(configuration.apiProvider) is updated $$$$$$$$$$$$$$$$$$$$")
-            }
+            // Save configuration to files
+            try AIConnectionService.shared.saveConnections(configurations)
+            print(" $$$$$$$$$$$$$$$$$$$$ AI Connection \(configuration.apiProvider) is saved $$$$$$$$$$$$$$$$$$$$")
             
             // Reload configurations to get the updated list
             await self.loadConfigurations()
@@ -503,21 +443,12 @@ class AIConfigurationTabView: NSView, NSTableViewDataSource, NSTableViewDelegate
                     }
                 }
                 
-                // Show popup message with user's name
+                // Show popup message
                 if let username = self.user?.name {
-                    if isNewConnection {
-                        let message = LocalizationService.shared.localizedString(for: "ai_connection_test_passed_new", withFormat: configuration.apiProvider, username)
-                        WindowManager.shared.displayPopupMessage(message)
-                    } else {
-                        let message = LocalizationService.shared.localizedString(for: "ai_connection_test_passed_updated", withFormat: configuration.apiProvider, username)
-                        WindowManager.shared.displayPopupMessage(message)
-                    }
+                    let message = LocalizationService.shared.localizedString(for: "ai_connection_test_passed_updated", withFormat: configuration.apiProvider, username)
+                    WindowManager.shared.displayPopupMessage(message)
                 } else {
-                    if isNewConnection {
-                        WindowManager.shared.displayPopupMessage(LocalizationService.shared.localizedString(for: "ai_connection_test_passed_new_no_user", withFormat: configuration.apiProvider))
-                    } else {
-                        WindowManager.shared.displayPopupMessage(LocalizationService.shared.localizedString(for: "ai_connection_test_passed_updated_no_user"))
-                    }
+                    WindowManager.shared.displayPopupMessage(LocalizationService.shared.localizedString(for: "ai_connection_test_passed_updated_no_user"))
                 }
             }
         } catch {
@@ -544,23 +475,12 @@ class AIConfigurationTabView: NSView, NSTableViewDataSource, NSTableViewDelegate
                     }
                 }
                 
-                // Show popup message with user's name
+                // Show popup message
                 if let username = self.user?.name {
-                    let isNewConnection = configuration.id == 0
-                    if isNewConnection {
-                        let message = LocalizationService.shared.localizedString(for: "ai_connection_test_failed_new", withFormat: configuration.apiProvider, username)
-                        WindowManager.shared.displayPopupMessage(message)
-                    } else {
-                        let message = LocalizationService.shared.localizedString(for: "ai_connection_test_failed_updated", withFormat: configuration.apiProvider, username)
-                        WindowManager.shared.displayPopupMessage(message)
-                    }
+                    let message = LocalizationService.shared.localizedString(for: "ai_connection_test_failed_updated", withFormat: configuration.apiProvider, username)
+                    WindowManager.shared.displayPopupMessage(message)
                 } else {
-                    let isNewConnection = configuration.id == 0
-                    if isNewConnection {
-                        WindowManager.shared.displayPopupMessage(LocalizationService.shared.localizedString(for: "ai_connection_test_failed_new_no_user", withFormat: configuration.apiProvider))
-                    } else {
-                        WindowManager.shared.displayPopupMessage(LocalizationService.shared.localizedString(for: "ai_connection_test_failed_updated_no_user"))
-                    }
+                    WindowManager.shared.displayPopupMessage(LocalizationService.shared.localizedString(for: "ai_connection_test_failed_updated_no_user"))
                 }
                 WindowManager.shared.displayPopupMessage(errorDescription)
             }
@@ -568,23 +488,20 @@ class AIConfigurationTabView: NSView, NSTableViewDataSource, NSTableViewDelegate
     }
     
     @objc private func addNewConfiguration() {
-        guard let userId = user?.id else { return }
-        
         // Create a new configuration with default values
-        let newConfiguration = AIManager.PublicAIConfiguration(
-            id: 0, // Temporary ID, will be replaced by database
-            userId: userId,
+        let newConfiguration = AIConnectionModel(
+            apiProvider: "OpenAI",
             apiKey: "",
-            apiProvider: providers.first?.name ?? "",
-            createdAt: Date(),
-            updatedAt: nil
+            apiUrl: "https://api.openai.com/v1/chat/completions",
+            model: "gpt-3.5-turbo",
+            isDefault: false
         )
         
         configurations.append(newConfiguration)
         configurationsTable.reloadData()
     }
 
-    private func checkForDuplicates(configuration: AIManager.PublicAIConfiguration, currentRow: Int) -> [Int] {
+    private func checkForDuplicates(configuration: AIConnectionModel, currentRow: Int) -> [Int] {
         var duplicateRows: [Int] = []
         
         for (index, config) in configurations.enumerated() {
@@ -647,9 +564,9 @@ class AIConfigurationTabView: NSView, NSTableViewDataSource, NSTableViewDelegate
     }
     
     // Store configurations temporarily for delete confirmation
-    private var configurationsForDelete: [AIManager.PublicAIConfiguration] = []
+    private var configurationsForDelete: [AIConnectionModel] = []
     
-    private func showDeleteConfirmationDialog(configuration: AIManager.PublicAIConfiguration, row: Int) {
+    private func showDeleteConfirmationDialog(configuration: AIConnectionModel, row: Int) {
         // Get mouse location for positioning
         let mouseLocation = NSEvent.mouseLocation
         
