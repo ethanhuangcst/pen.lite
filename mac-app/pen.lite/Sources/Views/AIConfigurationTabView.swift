@@ -16,12 +16,10 @@ class AIConfigurationTabView: NSView, NSTableViewDataSource, NSTableViewDelegate
     
     // Data properties
     private var configurations: [AIConnectionModel] = []
-    private var user: User?
     private weak var parentWindow: NSWindow?
     
     // MARK: - Initialization
-    init(frame: CGRect, user: User?, parentWindow: NSWindow? = nil) {
-        self.user = user
+    init(frame: CGRect, parentWindow: NSWindow? = nil) {
         self.parentWindow = parentWindow
         
         super.init(frame: frame)
@@ -72,9 +70,9 @@ class AIConfigurationTabView: NSView, NSTableViewDataSource, NSTableViewDelegate
         print("AIConfigurationTabView: Language changed, UI updated")
     }
     
-    static func createAIConfigurationTab(user: User?, parentWindow: NSWindow? = nil) -> AIConfigurationTabView {
+    static func createAIConfigurationTab(parentWindow: NSWindow? = nil) -> AIConfigurationTabView {
         let frame = CGRect(x: 0, y: 0, width: 680, height: 520)
-        return AIConfigurationTabView(frame: frame, user: user, parentWindow: parentWindow)
+        return AIConfigurationTabView(frame: frame, parentWindow: parentWindow)
     }
     
     private func setupTableView() {
@@ -444,12 +442,8 @@ class AIConfigurationTabView: NSView, NSTableViewDataSource, NSTableViewDelegate
                 }
                 
                 // Show popup message
-                if let username = self.user?.name {
-                    let message = LocalizationService.shared.localizedString(for: "ai_connection_test_passed_updated", withFormat: configuration.apiProvider, username)
-                    WindowManager.shared.displayPopupMessage(message)
-                } else {
-                    WindowManager.shared.displayPopupMessage(LocalizationService.shared.localizedString(for: "ai_connection_test_passed_updated_no_user"))
-                }
+                let message = LocalizationService.shared.localizedString(for: "ai_connection_test_passed_updated", withFormat: configuration.apiProvider)
+                WindowManager.shared.displayPopupMessage(message)
             }
         } catch {
             // Test failed

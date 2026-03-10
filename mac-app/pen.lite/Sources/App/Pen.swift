@@ -335,7 +335,7 @@ class PenDelegate: NSObject, NSApplicationDelegate {
         if let window = settingsWindow {
             window.showAndFocus()
         } else {
-            settingsWindow = SettingsWindow(user: nil)
+            settingsWindow = SettingsWindow()
             
             if let window = settingsWindow {
                 window.showAndFocus()

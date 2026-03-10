@@ -11,13 +11,10 @@ class PromptsTabView: NSView, NSTableViewDataSource, NSTableViewDelegate {
     private let emptyStateView = NSView()
     private let emptyStateLabel = NSTextField()
     private var prompts: [Prompt] = []
-    private var user: User?
     private weak var parentWindow: NSWindow?
-    private let promptsService = PromptsService()
     
     // MARK: - Initialization
-    init(frame: CGRect, user: User?, parentWindow: NSWindow? = nil) {
-        self.user = user
+    init(frame: CGRect, parentWindow: NSWindow? = nil) {
         self.parentWindow = parentWindow
         super.init(frame: frame)
         
@@ -40,11 +37,7 @@ class PromptsTabView: NSView, NSTableViewDataSource, NSTableViewDelegate {
     // MARK: - Language Change
     @objc func languageDidChange() {
         // Update all labels with localized strings
-        if let userName = user?.name {
-            userLabel.stringValue = LocalizationService.shared.localizedString(for: "predefined_prompts_for", withFormat: userName)
-        } else {
-            userLabel.stringValue = LocalizationService.shared.localizedString(for: "predefined_prompts_for", withFormat: "[User Name]")
-        }
+        userLabel.stringValue = LocalizationService.shared.localizedString(for: "predefined_prompts_for", withFormat: "Pen")
         defaultLabel.stringValue = LocalizationService.shared.localizedString(for: "first_prompt_default")
         addButton.title = LocalizationService.shared.localizedString(for: "new_button")
         emptyStateLabel.stringValue = LocalizationService.shared.localizedString(for: "no_prompts_saved_yet")
@@ -140,7 +133,7 @@ class PromptsTabView: NSView, NSTableViewDataSource, NSTableViewDelegate {
         let windowHeight = frame.height
         
         userLabel.frame = NSRect(x: 20, y: windowHeight - 92, width: windowWidth - 40, height: 24)
-        userLabel.stringValue = LocalizationService.shared.localizedString(for: "predefined_prompts_for", withFormat: user?.name ?? "[User Name]")
+        userLabel.stringValue = LocalizationService.shared.localizedString(for: "predefined_prompts_for", withFormat: "Pen")
         userLabel.isBezeled = false
         userLabel.drawsBackground = false
         userLabel.isEditable = false

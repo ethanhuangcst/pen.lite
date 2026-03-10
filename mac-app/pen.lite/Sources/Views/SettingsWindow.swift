@@ -3,19 +3,13 @@ import Cocoa
 class SettingsWindow: BaseWindow {
     // MARK: - Properties
     private let windowWidth: CGFloat = 600
-    private let mouseOffset: CGFloat = 6
-    private var user: User?
     
     private var titleLabel: NSTextField!
     private var userNameLabel: NSTextField!
     private var tabView: NSTabView!
     
     // MARK: - Initialization
-    init(user: User? = nil) {
-        // Store user
-        self.user = user
-        print("SettingsWindow: Initialized with user: \(user?.name ?? "nil")")
-        
+    init() {
         // Calculate window size
         let windowHeight: CGFloat = 518 // Fixed height as specified in requirements
         let windowSize = NSSize(width: windowWidth, height: windowHeight)
@@ -41,7 +35,7 @@ class SettingsWindow: BaseWindow {
         titleLabel?.stringValue = LocalizationService.shared.localizedString(for: "pen_ai_preferences")
         
         // Update user name label
-        userNameLabel?.stringValue = user?.name ?? LocalizationService.shared.localizedString(for: "no_user")
+        userNameLabel?.stringValue = LocalizationService.shared.localizedString(for: "pen_ai")
         
         // Update tab labels
         updateTabLabels()
@@ -114,7 +108,7 @@ class SettingsWindow: BaseWindow {
         // Add user name label
         userNameLabel = NSTextField(frame: NSRect(x: 370, y: windowHeight - 55, width: 180, height: 30))
         userNameLabel.identifier = NSUserInterfaceItemIdentifier("settings_user_name")
-        userNameLabel.stringValue = user?.name ?? LocalizationService.shared.localizedString(for: "no_user")
+        userNameLabel.stringValue = LocalizationService.shared.localizedString(for: "pen_ai")
         userNameLabel.isBezeled = false
         userNameLabel.drawsBackground = false
         userNameLabel.isEditable = false
@@ -155,14 +149,11 @@ class SettingsWindow: BaseWindow {
         // Add content based on tab title
         if title == LocalizationService.shared.localizedString(for: "ai_connections") {
             // Use the new AIConfigurationTabView
-            let aiConfigurationTabView = AIConfigurationTabView(frame: tabContentView.bounds, user: user, parentWindow: self)
-            if let userName = user?.name {
-                aiConfigurationTabView.setUserName(userName)
-            }
+            let aiConfigurationTabView = AIConfigurationTabView(frame: tabContentView.bounds, parentWindow: self)
             tabContentView.addSubview(aiConfigurationTabView)
         } else if title == LocalizationService.shared.localizedString(for: "prompts") {
             // Use the new PromptsTabView
-            let promptsTabView = PromptsTabView(frame: tabContentView.bounds, user: user, parentWindow: self)
+            let promptsTabView = PromptsTabView(frame: tabContentView.bounds, parentWindow: self)
             tabContentView.addSubview(promptsTabView)
         }
         

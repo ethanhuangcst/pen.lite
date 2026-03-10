@@ -7,59 +7,10 @@ public class AIManager {
     
     private struct AIConfiguration {
         let id: Int
-        let userId: Int
         var apiKey: String
         var apiProvider: String
         let createdAt: Date
         var updatedAt: Date?
-        
-        // Database parsing methods
-        static func fromDatabaseRow(_ row: [String: Any]) -> AIConfiguration? {
-            // Handle id as string or int
-            let id: Int
-            if let idInt = row["id"] as? Int {
-                id = idInt
-            } else if let idString = row["id"] as? String, let idInt = Int(idString) {
-                id = idInt
-            } else {
-                print("[AIConfiguration] Missing or invalid id: \(row["id"] ?? "nil")")
-                return nil
-            }
-            
-            // Handle userId as string or int
-            let userId: Int
-            if let userIdInt = row["user_id"] as? Int {
-                userId = userIdInt
-            } else if let userIdString = row["user_id"] as? String, let userIdInt = Int(userIdString) {
-                userId = userIdInt
-            } else {
-                print("[AIConfiguration] Missing or invalid user_id: \(row["user_id"] ?? "nil")")
-                return nil
-            }
-            
-            guard let apiKey = row["apiKey"] as? String,
-                  let apiProvider = row["apiProvider"] as? String else {
-                print("[AIConfiguration] Missing or invalid apiKey or apiProvider")
-                return nil
-            }
-            
-            // Parse timestamps
-            let createdAt: Date
-            if let createdAtString = row["createdAt"] as? String,
-               let date = ISO8601DateFormatter().date(from: createdAtString) {
-                createdAt = date
-            } else {
-                createdAt = Date()
-            }
-            
-            var updatedAt: Date?
-            if let updatedAtString = row["updatedAt"] as? String,
-               let date = ISO8601DateFormatter().date(from: updatedAtString) {
-                updatedAt = date
-            }
-            
-            return AIConfiguration(id: id, userId: userId, apiKey: apiKey, apiProvider: apiProvider, createdAt: createdAt, updatedAt: updatedAt)
-        }
     }
     
     private struct AIModelProvider {
@@ -71,149 +22,6 @@ public class AIManager {
         let authHeader: String
         let createdAt: Date
         let updatedAt: Date?
-        
-        // Database parsing and validation methods
-        static func fromDatabaseRow(_ row: [String: Any]) -> AIModelProvider? {
-            // Handle id as string or int
-            let id: Int
-            if let idInt = row["id"] as? Int {
-                id = idInt
-            } else if let idString = row["id"] as? String, let idInt = Int(idString) {
-                id = idInt
-            } else {
-                // Generate a default id if not provided or invalid
-                id = Int(Date.timeIntervalSinceReferenceDate * 1000)
-            }
-            
-            guard let name = row["name"] as? String,
-                  let defaultModel = row["default_model"] as? String,
-                  let requiresAuth = row["requires_auth"] as? Int else {
-                return nil
-            }
-            
-            // Optional fields
-            let authHeader = row["auth_header"] as? String ?? "Authorization"
-            
-            // Parse base_urls JSON (optional)
-            var baseURLs: [String: String] = [:]
-            if let baseURLsJSON = row["base_urls"] as? String,
-               let data = baseURLsJSON.data(using: .utf8) {
-                // Try to parse as dictionary first
-                if let urls = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: String] {
-                    baseURLs = urls
-                } 
-                // Try to parse as array of strings
-                else if let urlArray = try? JSONSerialization.jsonObject(with: data, options: []) as? [String] {
-                    // Map array to dictionary with default keys and construct full endpoints
-                    if !urlArray.isEmpty {
-                        // For each base URL, construct completion endpoints
-                        for (index, baseURL) in urlArray.enumerated() {
-                            // Remove any trailing slashes
-                            let cleanBaseURL = baseURL.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
-                            
-                            // Construct completion endpoint for each base URL
-                            // This allows us to try all URLs in order
-                            let completionKey = "completion_\(index)"
-                            baseURLs[completionKey] = "\(cleanBaseURL)/chat/completions"
-                        }
-                    }
-                }
-            } else {
-                // Set default base URLs based on provider name
-                baseURLs = getDefaultBaseURLs(for: name)
-            }
-            
-            // Parse timestamps
-            let createdAt: Date
-            if let createdAtString = row["created_at"] as? String,
-               let date = ISO8601DateFormatter().date(from: createdAtString) {
-                createdAt = date
-            } else {
-                createdAt = Date()
-            }
-            
-            var updatedAt: Date?
-            if let updatedAtString = row["updated_at"] as? String,
-               let date = ISO8601DateFormatter().date(from: updatedAtString) {
-                updatedAt = date
-            }
-            
-            return AIModelProvider(
-                id: id,
-                name: name,
-                baseURLs: baseURLs,
-                defaultModel: defaultModel,
-                requiresAuth: requiresAuth == 1,
-                authHeader: authHeader,
-                createdAt: createdAt,
-                updatedAt: updatedAt
-            )
-        }
-        
-        /// Gets default base URLs for a provider
-        private static func getDefaultBaseURLs(for providerName: String) -> [String: String] {
-            // Try to load from configuration file
-            if let configURLs = loadDefaultBaseURLsFromConfig() {
-                let normalizedName = providerName.lowercased()
-                if let providerURLs = configURLs[normalizedName] {
-                    return providerURLs
-                }
-                if let defaultURLs = configURLs["default"] {
-                    return defaultURLs
-                }
-            }
-            
-            // Fallback to hard-coded defaults if config fails
-            switch providerName.lowercased() {
-            case "deepseek3.2":
-                return ["completion": "https://api.deepseek.com/v1/chat/completions"]
-            case "gpt-4o-mini":
-                return [
-                    "completion": "https://api.openai.com/v1/chat/completions",
-                    "embedding": "https://api.openai.com/v1/embeddings",
-                    "image": "https://api.openai.com/v1/images/generations"
-                ]
-            case "qwen-plus":
-                return ["completion": "https://api.baichuan-ai.com/v1/chat/completions"]
-            default:
-                return ["completion": "https://api.openai.com/v1/chat/completions"]
-            }
-        }
-        
-        /// Loads default base URLs from configuration file
-        private static func loadDefaultBaseURLsFromConfig() -> [String: [String: String]]? {
-            let configPath = Bundle.main.path(forResource: "default_base_urls", ofType: "json", inDirectory: "config")
-            guard let configPath = configPath, let data = try? Data(contentsOf: URL(fileURLWithPath: configPath)) else {
-                print("[AIManager] Failed to load default_base_urls.json")
-                return nil
-            }
-            
-            do {
-                if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
-                   let defaultBaseURLs = json["defaultBaseURLs"] as? [String: [String: String]] {
-                    return defaultBaseURLs
-                }
-            } catch {
-                print("[AIManager] Error parsing default_base_urls.json: \(error)")
-            }
-            
-            return nil
-        }
-        
-        /// Validates the provider data
-        func validate() throws {
-            guard !name.isEmpty else {
-                throw AIError.providerError("Missing provider name")
-            }
-            
-            guard !baseURLs.isEmpty else {
-                throw AIError.providerError("Missing base URLs")
-            }
-            
-            guard !defaultModel.isEmpty else {
-                throw AIError.providerError("Missing default model")
-            }
-        }
     }
     
     private enum AIError: Error {
@@ -299,7 +107,6 @@ public class AIManager {
     
     private var strategies: [String: ProviderStrategy] = [:]
     private var cachedProviders: [AIModelProvider]?
-    private var databasePool: DatabaseConnectivityPool
     private var currentConfiguration: AIConfiguration?
     private var _isInitialized: Bool = false
     
@@ -312,7 +119,7 @@ public class AIManager {
     // MARK: - Initialization
     
     public init() {
-        self.databasePool = DatabaseConnectivityPool.shared
+        // No initialization needed
     }
     
     // MARK: - Initialization Method
@@ -323,22 +130,15 @@ public class AIManager {
     
     // MARK: - Public Methods
     
-    public func configure(apiKey: String, providerName: String, userId: Int) {
+    public func configure(apiKey: String, providerName: String) {
         let configuration = AIConfiguration(
-            id: 0, // Temporary ID
-            userId: userId,
+            id: 0,
             apiKey: apiKey,
             apiProvider: providerName,
             createdAt: Date(),
             updatedAt: nil
         )
         currentConfiguration = configuration
-    }
-    
-    public func configure(with configuration: [String: Any]) {
-        if let config = AIConfiguration.fromDatabaseRow(configuration) {
-            currentConfiguration = config
-        }
     }
     
     public func sendChat(
@@ -569,27 +369,6 @@ public class AIManager {
         )
     }
     
-    // Get current configuration
-    public func getCurrentConfiguration() -> [String: Any]? {
-        guard let config = currentConfiguration else {
-            return nil
-        }
-        
-        var result: [String: Any] = [
-            "id": config.id,
-            "userId": config.userId,
-            "apiKey": config.apiKey,
-            "apiProvider": config.apiProvider,
-            "createdAt": ISO8601DateFormatter().string(from: config.createdAt)
-        ]
-        
-        if let updatedAt = config.updatedAt {
-            result["updatedAt"] = ISO8601DateFormatter().string(from: updatedAt)
-        }
-        
-        return result
-    }
-    
     // Clear configuration
     public func clearConfiguration() {
         currentConfiguration = nil
@@ -613,11 +392,10 @@ public class AIManager {
     // Public struct for UI use
     public struct PublicAIConfiguration {
         public let id: Int
-        public let userId: Int
-        public var apiKey: String
-        public var apiProvider: String
+        public let apiKey: String
+        public let apiProvider: String
         public let createdAt: Date
-        public var updatedAt: Date?
+        public let updatedAt: Date?
     }
     
     // Public struct for UI use
@@ -634,119 +412,24 @@ public class AIManager {
     
     // Load all providers for UI
     public func loadAllProviders() async throws -> [PublicAIModelProvider] {
-        do {
-            // Get a connection from the pool
-            var connection = databasePool.getConnection()
-            
-            // Wait for pool to be ready if no connection available
-            var attempts = 0
-            let maxAttempts = 5
-            while connection == nil && attempts < maxAttempts {
-                print("[AIManager] Waiting for database pool to be ready...")
-                try await Task.sleep(nanoseconds: 500_000_000) // Wait 0.5 seconds
-                connection = databasePool.getConnection()
-                attempts += 1
-            }
-            
-            guard let connection = connection else {
-                throw AIError.configurationError("Failed to get database connection after multiple attempts")
-            }
-            
-            defer {
-                // Return the connection to the pool
-                databasePool.returnConnection(connection)
-            }
-            
-            // Try direct MySQLConnection access for JSON columns
-            if let mysqlConnection = connection as? MySQLConnection, let internalConnection = mysqlConnection.getConnection() {
-                let query = "SELECT id, name, CAST(base_urls AS CHAR) as base_urls, default_model, requires_auth, auth_header, created_at, updated_at FROM ai_providers"
-                let rows = try await internalConnection.query(query).get()
-                
-                var providers: [PublicAIModelProvider] = []
-                
-                for row in rows {
-                    var rowData: [String: Any] = [:]
-                    
-                    if let idData = row.column("id"), let id = idData.string {
-                        rowData["id"] = id
-                    }
-                    if let nameData = row.column("name"), let name = nameData.string {
-                        rowData["name"] = name
-                    }
-                    if let baseURLsData = row.column("base_urls"), let baseURLs = baseURLsData.string {
-                        rowData["base_urls"] = baseURLs
-                    }
-                    if let defaultModelData = row.column("default_model"), let defaultModel = defaultModelData.string {
-                        rowData["default_model"] = defaultModel
-                    }
-                    if let requiresAuthData = row.column("requires_auth"), let requiresAuth = requiresAuthData.int {
-                        rowData["requires_auth"] = requiresAuth
-                    }
-                    if let authHeaderData = row.column("auth_header"), let authHeader = authHeaderData.string {
-                        rowData["auth_header"] = authHeader
-                    }
-                    if let createdAtData = row.column("created_at"), let createdAt = createdAtData.string {
-                        rowData["created_at"] = createdAt
-                    }
-                    if let updatedAtData = row.column("updated_at"), let updatedAt = updatedAtData.string {
-                        rowData["updated_at"] = updatedAt
-                    }
-                    
-                    // Create provider from row data
-                    if let provider = AIModelProvider.fromDatabaseRow(rowData) {
-                        try provider.validate()
-                        
-                        // Convert to public provider
-                        let publicProvider = PublicAIModelProvider(
-                            id: provider.id,
-                            name: provider.name,
-                            baseURLs: provider.baseURLs,
-                            defaultModel: provider.defaultModel,
-                            requiresAuth: provider.requiresAuth,
-                            authHeader: provider.authHeader,
-                            createdAt: provider.createdAt,
-                            updatedAt: provider.updatedAt
-                        )
-                        providers.append(publicProvider)
-                    }
-                }
-                
-                return providers
-            } else {
-                let query = "SELECT * FROM ai_providers"
-                let results = try await connection.execute(query: query)
-                
-                var providers: [PublicAIModelProvider] = []
-                
-                for row in results {
-                    if let provider = AIModelProvider.fromDatabaseRow(row) {
-                        try provider.validate()
-                        
-                        // Convert to public provider
-                        let publicProvider = PublicAIModelProvider(
-                            id: provider.id,
-                            name: provider.name,
-                            baseURLs: provider.baseURLs,
-                            defaultModel: provider.defaultModel,
-                            requiresAuth: provider.requiresAuth,
-                            authHeader: provider.authHeader,
-                            createdAt: provider.createdAt,
-                            updatedAt: provider.updatedAt
-                        )
-                        providers.append(publicProvider)
-                    }
-                }
-                
-                return providers
-            }
-        } catch {
-            print("Error loading AI providers: \(error)")
-            // Return default providers if database loading fails
-            return getDefaultPublicProviders()
+        // Load from AIConnectionService
+        let connections = try AIConnectionService.shared.getConnections()
+        
+        let providers = connections.map { connection in
+            PublicAIModelProvider(
+                id: Int(connection.id.hashValue),
+                name: connection.apiProvider,
+                baseURLs: ["default": connection.apiUrl],
+                defaultModel: connection.model,
+                requiresAuth: true,
+                authHeader: "Authorization",
+                createdAt: Date(),
+                updatedAt: nil
+            )
         }
+        
+        return providers.isEmpty ? getDefaultPublicProviders() : providers
     }
-    
-    // Get default public providers
     private func getDefaultPublicProviders() -> [PublicAIModelProvider] {
         let now = Date()
         
@@ -801,258 +484,41 @@ public class AIManager {
         return [openAI, anthropic, googleAI, azureOpenAI]
     }
     
-    // Get connections for a user
-    public func getConnections(for userId: Int) async throws -> [PublicAIConfiguration] {
-        do {
-            // Get a connection from the pool
-            var connection = databasePool.getConnection()
-            
-            // Wait for pool to be ready if no connection available
-            var attempts = 0
-            let maxAttempts = 5
-            while connection == nil && attempts < maxAttempts {
-                print("[AIManager] Waiting for database pool to be ready...")
-                try await Task.sleep(nanoseconds: 500_000_000) // Wait 0.5 seconds
-                connection = databasePool.getConnection()
-                attempts += 1
-            }
-            
-            guard let connection = connection else {
-                throw AIError.configurationError("Failed to get database connection after multiple attempts")
-            }
-            
-            defer {
-                // Return the connection to the pool
-                databasePool.returnConnection(connection)
-            }
-            
-            // Execute the query
-            let query = "SELECT * FROM ai_connections WHERE user_id = \(userId)"
-            let results = try await connection.execute(query: query)
-            
-            var configurations: [PublicAIConfiguration] = []
-            
-            for row in results {
-                if let config = AIConfiguration.fromDatabaseRow(row) {
-                    let publicConfig = PublicAIConfiguration(
-                        id: config.id,
-                        userId: config.userId,
-                        apiKey: config.apiKey,
-                        apiProvider: config.apiProvider,
-                        createdAt: config.createdAt,
-                        updatedAt: config.updatedAt
-                    )
-                    configurations.append(publicConfig)
-                }
-            }
-            
-            return configurations
-        } catch {
-            print("Error getting AI connections: \(error)")
-            throw error
-        }
-    }
-    
     // MARK: - Provider Methods
     
     public func getProviders() async throws -> [AIProvider] {
-        do {
-            let publicProviders = try await loadAllProviders()
-            return publicProviders.map { provider in
-                AIProvider(
-                    id: provider.id,
-                    name: provider.name,
-                    baseURLs: provider.baseURLs,
-                    defaultModel: provider.defaultModel,
-                    requiresAuth: provider.requiresAuth,
-                    authHeader: provider.authHeader
-                )
-            }
-        } catch {
-            print("Error getting AI providers: \(error)")
-            throw error
-        }
-    }
-    
-    // Create a new connection
-    public func createConnection(userId: Int, apiKey: String, providerName: String) async throws -> Bool {
-        do {
-            // Get a connection from the pool
-            guard let connection = databasePool.getConnection() else {
-                throw AIError.configurationError("Failed to get database connection")
-            }
-            
-            defer {
-                // Return the connection to the pool
-                databasePool.returnConnection(connection)
-            }
-            
-            // Execute the query
-            let query = "INSERT INTO ai_connections (user_id, apiKey, apiProvider) VALUES (\(userId), '\(apiKey)', '\(providerName)')"
-            try await connection.execute(query: query)
-            return true
-        } catch {
-            print("Error creating AI connection: \(error)")
-            throw error
-        }
-    }
-    
-    // Delete a connection
-    public func deleteConnection(_ connectionId: Int) async throws -> Bool {
-        do {
-            // Get a connection from the pool
-            guard let connection = databasePool.getConnection() else {
-                throw AIError.configurationError("Failed to get database connection")
-            }
-            
-            defer {
-                // Return the connection to the pool
-                databasePool.returnConnection(connection)
-            }
-            
-            // Execute the query
-            let query = "DELETE FROM ai_connections WHERE id = \(connectionId)"
-            try await connection.execute(query: query)
-            return true
-        } catch {
-            print("Error deleting AI connection: \(error)")
-            throw error
-        }
-    }
-    
-    // Update an existing connection
-    public func updateConnection(id: Int, apiKey: String, providerName: String) async throws -> Bool {
-        do {
-            // Get a connection from the pool
-            guard let connection = databasePool.getConnection() else {
-                throw AIError.configurationError("Failed to get database connection")
-            }
-            
-            defer {
-                // Return the connection to the pool
-                databasePool.returnConnection(connection)
-            }
-            
-            // Execute the query
-            let query = "UPDATE ai_connections SET apiKey = '\(apiKey)', apiProvider = '\(providerName)', updatedAt = NOW() WHERE id = \(id)"
-            try await connection.execute(query: query)
-            return true
-        } catch {
-            print("Error updating AI connection: \(error)")
-            throw error
+        let publicProviders = try await loadAllProviders()
+        return publicProviders.map { provider in
+            AIProvider(
+                id: provider.id,
+                name: provider.name,
+                baseURLs: provider.baseURLs,
+                defaultModel: provider.defaultModel,
+                requiresAuth: provider.requiresAuth,
+                authHeader: provider.authHeader
+            )
         }
     }
     
     // MARK: - Private Methods
     
     private func loadProviderByName(_ name: String) async throws -> AIModelProvider? {
-        // Check cache first
-        if let cached = cachedProviders?.first(where: { $0.name == name }) {
-            return cached
+        // Load from AIConnectionService
+        let connections = try AIConnectionService.shared.getConnections()
+        guard let connection = connections.first(where: { $0.apiProvider == name }) else {
+            return nil
         }
         
-        do {
-            // Get a connection from the pool
-            var connection = databasePool.getConnection()
-            
-            // Wait for pool to be ready if no connection available
-            var attempts = 0
-            let maxAttempts = 5
-            while connection == nil && attempts < maxAttempts {
-                print("[AIManager] Waiting for database pool to be ready...")
-                try await Task.sleep(nanoseconds: 500_000_000) // Wait 0.5 seconds
-                connection = databasePool.getConnection()
-                attempts += 1
-            }
-            
-            guard let connection = connection else {
-                throw AIError.configurationError("Failed to get database connection after multiple attempts")
-            }
-            
-            defer {
-                // Return the connection to the pool
-                databasePool.returnConnection(connection)
-            }
-            
-            // Try direct MySQLConnection access for JSON columns
-            if let mysqlConnection = connection as? MySQLConnection, let internalConnection = mysqlConnection.getConnection() {
-                let query = "SELECT id, name, CAST(base_urls AS CHAR) as base_urls, default_model, requires_auth, auth_header, created_at, updated_at FROM ai_providers WHERE name = '\(name)'"
-                let rows = try await internalConnection.query(query).get()
-                
-                guard !rows.isEmpty else {
-                    return nil
-                }
-                
-                for row in rows {
-                    var rowData: [String: Any] = [:]
-                    
-                    if let idData = row.column("id"), let id = idData.string {
-                        rowData["id"] = id
-                    }
-                    if let nameData = row.column("name"), let nameVal = nameData.string {
-                        rowData["name"] = nameVal
-                    }
-                    if let baseURLsData = row.column("base_urls"), let baseURLs = baseURLsData.string {
-                        rowData["base_urls"] = baseURLs
-                    }
-                    if let defaultModelData = row.column("default_model"), let defaultModel = defaultModelData.string {
-                        rowData["default_model"] = defaultModel
-                    }
-                    if let requiresAuthData = row.column("requires_auth"), let requiresAuth = requiresAuthData.int {
-                        rowData["requires_auth"] = requiresAuth
-                    }
-                    if let authHeaderData = row.column("auth_header"), let authHeader = authHeaderData.string {
-                        rowData["auth_header"] = authHeader
-                    }
-                    if let createdAtData = row.column("created_at"), let createdAt = createdAtData.string {
-                        rowData["created_at"] = createdAt
-                    }
-                    if let updatedAtData = row.column("updated_at"), let updatedAt = updatedAtData.string {
-                        rowData["updated_at"] = updatedAt
-                    }
-                    
-                    // Create provider from row data
-                    if let provider = AIModelProvider.fromDatabaseRow(rowData) {
-                        try provider.validate()
-                        
-                        // Add to cache
-                        if cachedProviders == nil {
-                            cachedProviders = []
-                        }
-                        cachedProviders?.append(provider)
-                        
-                        return provider
-                    }
-                }
-                
-                return nil
-            } else {
-                let parameterizedQuery = "SELECT * FROM ai_providers WHERE name = '\(name)'"
-                let results = try await connection.execute(query: parameterizedQuery)
-                
-                guard !results.isEmpty else {
-                    return nil
-                }
-                
-                if let provider = AIModelProvider.fromDatabaseRow(results[0]) {
-                    try provider.validate()
-                    
-                    // Add to cache
-                    if cachedProviders == nil {
-                        cachedProviders = []
-                    }
-                    cachedProviders?.append(provider)
-                    
-                    return provider
-                }
-                
-                return nil
-            }
-        } catch {
-            print("Error loading AI provider by name: \(error)")
-            // Return default provider if database loading fails
-            return createDefaultProvider(for: name)
-        }
+        return AIModelProvider(
+            id: Int(connection.id.hashValue),
+            name: connection.apiProvider,
+            baseURLs: ["default": connection.apiUrl],
+            defaultModel: connection.model,
+            requiresAuth: true,
+            authHeader: "Authorization",
+            createdAt: Date(),
+            updatedAt: nil
+        )
     }
     
     private func createDefaultProvider(for name: String) -> AIModelProvider {
