@@ -15,7 +15,6 @@ class PenDelegate: NSObject, NSApplicationDelegate {
     private var window: BaseWindow?
     private var settingsWindow: SettingsWindow?
     private var newOrEditPromptWindow: NewOrEditPrompt?
-    private var tmpWindow: TmpWindow?
     private var penWindowService: PenWindowService?
     private var windowManager: WindowManager = WindowManager.shared
 
@@ -350,18 +349,6 @@ class PenDelegate: NSObject, NSApplicationDelegate {
         testWindow.showAndFocus()
     }
     
-    @objc private func openTmpWindow() {
-        closeOtherWindows()
-        
-        if tmpWindow == nil {
-            tmpWindow = TmpWindow()
-        }
-        
-        if let tmpWindow = tmpWindow {
-            positionWindowRelativeToMenuBarIcon(tmpWindow)
-            tmpWindow.showAndFocus()
-        }
-    }
     
     @objc private func openWindow() {
         if !isOnline {

@@ -11,8 +11,6 @@ class PenWindowService {
     }
     
     private var window: BaseWindow?
-    private var userService: UserService
-    private var promptsService: PromptsService
     private var currentClipboardContent: String?
     private var currentOriginalTextForEnhancement: String?
     private let originalTextMaxVisibleLines = 5
@@ -26,10 +24,8 @@ class PenWindowService {
     private let inputModeDefaultsKey = "pen.inputMode"
     
     init() {
-        self.userService = UserService.shared
-        self.promptsService = PromptsService()
         loadSavedInputMode()
-        print("[PenWindowService] Initializer called, currentUser: \(userService.currentUser?.name ?? "nil")")
+        print("[PenWindowService] Initializer called")
     }
     
     deinit {
@@ -132,15 +128,12 @@ class PenWindowService {
         
         isInitializing = true
         
-        // 1. Load User Information
-        await loadUserInformation()
-        
-        // 2. Initialize UI Components on main thread
+        // 1. Initialize UI Components on main thread
         await MainActor.run {
             initializeUIComponents()
         }
         
-        // 3. Load AI Configurations
+        // 2. Load AI Configurations
         await loadAIConfigurations()
         
         // 4. Load source content by mode
@@ -158,27 +151,6 @@ class PenWindowService {
         }
         
         isInitializing = false
-    }
-    
-    // MARK: - User Information Loading
-    
-    private func loadUserInformation() async {
-        guard let window = window else { return }
-        
-        let isLoggedIn = userService.isLoggedIn
-        let isOnline = userService.isOnline
-        
-        if isOnline && isLoggedIn {
-            if userService.currentUser == nil {
-                showDefaultUI()
-                WindowManager.shared.displayPopupMessage(LocalizationService.shared.localizedString(for: "pen_load_login_error"))
-                return
-            }
-        } else if isOnline && !isLoggedIn {
-            showDefaultUI()
-            WindowManager.shared.displayPopupMessage(LocalizationService.shared.localizedString(for: "pen_not_logged_in_error"))
-            return
-        }
     }
     
     // MARK: - AI Configurations Loading
@@ -693,58 +665,11 @@ class PenWindowService {
         
         let profileImage = NSImageView(frame: NSRect(x: 0, y: 0, width: 20, height: 20))
         profileImage.identifier = NSUserInterfaceItemIdentifier("pen_userlabel_img")
+        setPlaceholderImage(to: profileImage)
         
-        if let user = userService.currentUser, let profileImageData = user.profileImage, !profileImageData.isEmpty {
-            if profileImageData.hasPrefix("data:image") {
-                if let base64String = profileImageData.components(separatedBy: ",").last {
-                    if let imageData = Data(base64Encoded: base64String) {
-                        if let image = NSImage(data: imageData) {
-                            profileImage.image = image
-                        } else {
-                            self.setPlaceholderImage(to: profileImage)
-                        }
-                    } else {
-                        self.setPlaceholderImage(to: profileImage)
-                    }
-                } else {
-                    self.setPlaceholderImage(to: profileImage)
-                }
-            } else {
-                let possiblePaths = [
-                    "Resources/ProfileImages/\(profileImageData)",
-                    "mac-app/Pen/Resources/ProfileImages/\(profileImageData)",
-                    "pen/mac-app/Pen/Resources/ProfileImages/\(profileImageData)"
-                ]
-                
-                var foundImage = false
-                for path in possiblePaths {
-                    if let image = NSImage(contentsOfFile: path) {
-                        profileImage.image = image
-                        foundImage = true
-                        break
-                    }
-                }
-                
-                if !foundImage {
-                    self.setPlaceholderImage(to: profileImage)
-                }
-            }
-        } else {
-            self.setPlaceholderImage(to: profileImage)
-        }
-        
-        // Add user name text label
         let userNameLabel = NSTextField(frame: NSRect(x: 26, y: -13, width: 90, height: 30))
         userNameLabel.identifier = NSUserInterfaceItemIdentifier("pen_userlable_text")
-        
-        if let user = userService.currentUser {
-            let name = user.name
-            let font = NSFont.boldSystemFont(ofSize: 12)
-            let trimmedName = trimTextToFitWidth(name, font: font, maxWidth: 90)
-            userNameLabel.stringValue = trimmedName
-        } else {
-            userNameLabel.stringValue = LocalizationService.shared.localizedString(for: "no_user")
-        }
+        userNameLabel.stringValue = LocalizationService.shared.localizedString(for: "pen_ai")
         
         userNameLabel.isBezeled = false
         userNameLabel.drawsBackground = false
