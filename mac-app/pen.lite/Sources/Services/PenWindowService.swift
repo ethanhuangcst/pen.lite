@@ -1247,17 +1247,6 @@ class PenWindowService {
                 updateEnhancedText(aiResponse.content)
                 hideLoadingIndicator()
             }
-            
-            // Save to content history
-            let historyModel = ContentHistoryModel(
-                userID: user.id,
-                originalContent: originalText,
-                enhancedContent: aiResponse.content,
-                promptText: selectedPrompt.promptText,
-                aiProvider: selectedProvider.name
-            )
-            
-
         } catch {
             print("[PenWindowService] Failed to enhance text: \(error)")
             await MainActor.run {

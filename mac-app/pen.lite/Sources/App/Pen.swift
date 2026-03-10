@@ -390,7 +390,6 @@ class PenDelegate: NSObject, NSApplicationDelegate {
         window = nil
         settingsWindow = nil
         newOrEditPromptWindow = nil
-        tmpWindow = nil
     }
     
 
