@@ -39,11 +39,7 @@ class AIConfigurationTabView: NSView, NSTableViewDataSource, NSTableViewDelegate
     // MARK: - Language Change
     @objc func languageDidChange() {
         // Update all labels with localized strings
-        if let userName = user?.name {
-            userLabel.stringValue = LocalizationService.shared.localizedString(for: "ai_connections_for", withFormat: userName)
-        } else {
-            userLabel.stringValue = LocalizationService.shared.localizedString(for: "ai_connections_for", withFormat: "[User Name]")
-        }
+        userLabel.stringValue = LocalizationService.shared.localizedString(for: "ai_connections_for", withFormat: "Pen")
         defaultLabel.stringValue = LocalizationService.shared.localizedString(for: "first_connection_default")
         addButton.title = LocalizationService.shared.localizedString(for: "new_button")
         
@@ -470,12 +466,8 @@ class AIConfigurationTabView: NSView, NSTableViewDataSource, NSTableViewDelegate
                 }
                 
                 // Show popup message
-                if let username = self.user?.name {
-                    let message = LocalizationService.shared.localizedString(for: "ai_connection_test_failed_updated", withFormat: configuration.apiProvider, username)
-                    WindowManager.shared.displayPopupMessage(message)
-                } else {
-                    WindowManager.shared.displayPopupMessage(LocalizationService.shared.localizedString(for: "ai_connection_test_failed_updated_no_user"))
-                }
+                let message = LocalizationService.shared.localizedString(for: "ai_connection_test_failed_updated", withFormat: configuration.apiProvider)
+                WindowManager.shared.displayPopupMessage(message)
                 WindowManager.shared.displayPopupMessage(errorDescription)
             }
         }
