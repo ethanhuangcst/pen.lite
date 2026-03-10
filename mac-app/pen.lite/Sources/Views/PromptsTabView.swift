@@ -259,20 +259,18 @@ class PromptsTabView: NSView, NSTableViewDataSource, NSTableViewDelegate {
         // Create mock prompts based on prompts_sample.md
         let prompt1 = Prompt(
             id: "prompt-1",
-            userId: 1,
             promptName: "Five Language Translator",
             promptText: "# Situation\n- I am located in Shanghai, China.\n- I often collaborate with people who write in multiple languages\n- I need an assistant to help me translate between languages\n\n# Task\n- Act as an expert translator\n- Follow the rules specified\n- Provide translations in multiple languages\n\n# Action Role\n- You are an expert translator\n- You speak multiple languages\n\n# Rule\n- Translate input into multiple languages\n- Add language prefixes\n- Output as plain text",
-            createdDatetime: Date().addingTimeInterval(-86400), // 1 day ago
+            createdDatetime: Date().addingTimeInterval(-86400),
             updatedDatetime: nil,
             systemFlag: "PEN"
         )
         
         let prompt2 = Prompt(
             id: "prompt-2",
-            userId: 1,
             promptName: "English Content Enhancer",
             promptText: "# Situation\n- I am a non-native English speaker\n- I need help enhancing my written English\n- My target audience is native English speakers\n\n# Task\n- Act as a professional translator\n- Enhance the English content\n- Keep the original meaning\n\n# Action Role\n- You are a professional translator\n- You are a native English speaker\n\n# Rule\n- Enhance English content\n- Follow specific scenarios like email, formal, casual\n- Output as plain text",
-            createdDatetime: Date().addingTimeInterval(-43200), // 12 hours ago
+            createdDatetime: Date().addingTimeInterval(-43200),
             updatedDatetime: nil,
             systemFlag: "PEN"
         )

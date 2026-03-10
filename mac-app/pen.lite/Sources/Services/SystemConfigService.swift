@@ -96,35 +96,6 @@ class SystemConfigService {
         saveDefaultPromptToFile(name: name, text: text)
     }
     
-    func getContentHistoryCount(level: String) -> Int {
-        switch level.lowercased() {
-        case "low":
-            return CONTENT_HISTORY_LOW
-        case "medium":
-            return CONTENT_HISTORY_MEDIUM
-        case "high":
-            return CONTENT_HISTORY_HIGH
-        default:
-            return CONTENT_HISTORY_LOW
-        }
-    }
-    
-    func setContentHistoryCount(level: String, value: Int) {
-        switch level.lowercased() {
-        case "low":
-            CONTENT_HISTORY_LOW = value
-            UserDefaults.standard.set(value, forKey: "contentHistoryLow")
-        case "medium":
-            CONTENT_HISTORY_MEDIUM = value
-            UserDefaults.standard.set(value, forKey: "contentHistoryMedium")
-        case "high":
-            CONTENT_HISTORY_HIGH = value
-            UserDefaults.standard.set(value, forKey: "contentHistoryHigh")
-        default:
-            break
-        }
-    }
-    
     private func loadDefaultPromptFromFile() -> (name: String, text: String)? {
         let defaultPromptPath = "\(FileManager.default.currentDirectoryPath)/default_prompt.md"
         

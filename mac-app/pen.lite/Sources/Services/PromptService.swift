@@ -20,7 +20,6 @@ class PromptService {
                 
                 let prompt = Prompt(
                     id: UUID().uuidString,
-                    userId: 1, // Default user ID for local storage
                     promptName: promptName,
                     promptText: content,
                     createdDatetime: Date(),

@@ -204,10 +204,8 @@ class NewOrEditPrompt: BaseWindow, NSTextViewDelegate {
         let isDefault = defaultPromptCheckbox.state == .on
         
         if let existingPrompt = prompt {
-            // Update existing prompt
             let updatedPrompt = Prompt(
                 id: existingPrompt.id,
-                userId: existingPrompt.userId,
                 promptName: promptName,
                 promptText: promptText,
                 createdDatetime: existingPrompt.createdDatetime,
@@ -217,10 +215,8 @@ class NewOrEditPrompt: BaseWindow, NSTextViewDelegate {
             )
             onSave?(updatedPrompt)
         } else {
-            // Create new prompt
             let newPrompt = Prompt(
                 id: "prompt-\(UUID().uuidString)",
-                userId: 0, // Will be set by the caller
                 promptName: promptName,
                 promptText: promptText,
                 createdDatetime: Date(),
