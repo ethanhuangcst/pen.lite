@@ -1,0 +1,57 @@
+# Build artifacts
+*.build/
+.build/
+dist/
+node_modules/
+
+# Swift Package Manager
+.swiftpm/
+Package.resolved
+
+# Executables
+main
+Pen
+
+# IDE files
+.vscode/
+.idea/
+*.xcodeproj/
+*.xcworkspace/
+*.xcodeproj/project.xcworkspace/
+*.xcodeproj/xcuserdata/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+temp/
+tmp/
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Log files
+*.log
+logs/
+
+# macOS app bundle
+*.app/
+*.dmg
+
+# Test/utility scripts (should not be committed)
+test-*.js
+test-*.swift
+check-*.js
+check-*.swift
+query-*.js
+setup_*.sql
+add_*.sql
+
+# Database config (sensitive)
+*.json
+!Package.resolved
