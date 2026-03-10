@@ -1204,25 +1204,8 @@ class PenWindowService {
         
         // Call AIManager.AITestCall()
         do {
-            guard let aiManager = userService.aiManager else {
-                print("[PenWindowService] AIManager not available")
-                await MainActor.run {
-                    hideLoadingIndicator()
-                }
-                return
-            }
-            
-            // Configure AIManager with the selected provider
-            guard let user = userService.currentUser else {
-                print("[PenWindowService] No user logged in")
-                await MainActor.run {
-                    hideLoadingIndicator()
-                }
-                return
-            }
-            
-            // Get user's AI connections
-            let connections = try await aiManager.getConnections(for: user.id)
+            // Get AI connections from file storage
+            let connections = try AIConnectionService.shared.getConnections()
             let selectedConnection = connections.first { $0.apiProvider == selectedProvider.name }
             
             guard let connection = selectedConnection else {
@@ -1233,8 +1216,9 @@ class PenWindowService {
                 return
             }
             
-            // Configure AIManager with the selected connection
-            aiManager.configure(apiKey: connection.apiKey, providerName: connection.apiProvider, userId: user.id)
+            // Create AIManager and configure it
+            let aiManager = AIManager()
+            aiManager.configure(apiKey: connection.apiKey, providerName: connection.apiProvider)
             
             // Call AITestCall to get enhanced text
             let aiResponse = try await aiManager.AITestCall(
@@ -1280,10 +1264,10 @@ class PenWindowService {
         }
         
         // Find the prompt with the selected title
-        guard let selectedTitle = selectedTitle, let user = userService.currentUser else { return nil }
+        guard let selectedTitle = selectedTitle else { return nil }
         
         do {
-            let prompts = try await promptsService.getPromptsByUserId(userId: user.id)
+            let prompts = try PromptService.shared.getPrompts()
             return prompts.first { $0.promptName == selectedTitle }
         } catch {
             print("[PenWindowService] Failed to get prompts: \(error)")
@@ -1311,11 +1295,21 @@ class PenWindowService {
         }
         
         // Find the provider with the selected title
-        guard let selectedTitle = selectedTitle, let aiManager = userService.aiManager else { return nil }
+        guard let selectedTitle = selectedTitle else { return nil }
         
         do {
-            let providers = try await aiManager.getProviders()
-            return providers.first { $0.name == selectedTitle }
+            let connections = try AIConnectionService.shared.getConnections()
+            if let connection = connections.first(where: { $0.apiProvider == selectedTitle }) {
+                return AIProvider(
+                    id: 1,
+                    name: connection.apiProvider,
+                    baseURLs: ["default": connection.apiUrl],
+                    defaultModel: connection.model,
+                    requiresAuth: true,
+                    authHeader: "Authorization"
+                )
+            }
+            return nil
         } catch {
             print("[PenWindowService] Failed to get providers: \(error)")
             return nil
@@ -1503,81 +1497,5 @@ class PenWindowService {
             }
         }
         return nil
-    }
-    
-    func updateUserLabel() {
-        DispatchQueue.main.async {
-            if let window = self.window, let contentView = window.contentView {
-                // Find the user label container
-                for subview in contentView.subviews {
-                    if subview.identifier == NSUserInterfaceItemIdentifier("pen_userlabel") {
-                        // Find the user name label and profile image within the container
-                        for labelSubview in subview.subviews {
-                            if let userNameLabel = labelSubview as? NSTextField, userNameLabel.identifier == NSUserInterfaceItemIdentifier("pen_userlable_text") {
-                                // Update the user name
-                                if let user = self.userService.currentUser {
-                                    let name = user.name
-                                    // Trim name to fit width
-                                    let font = NSFont.boldSystemFont(ofSize: 12)
-                                    let trimmedName = self.trimTextToFitWidth(name, font: font, maxWidth: 90)
-                                    userNameLabel.stringValue = trimmedName
-                                } else {
-                                    userNameLabel.stringValue = LocalizationService.shared.localizedString(for: "no_user")
-                                }
-                            } else if let profileImage = labelSubview as? NSImageView, profileImage.identifier == NSUserInterfaceItemIdentifier("pen_userlabel_img") {
-                                // Update the profile image
-                                if let user = self.userService.currentUser, let profileImageData = user.profileImage, !profileImageData.isEmpty {
-                                    // Check if it's a base64-encoded image
-                                    if profileImageData.hasPrefix("data:image") {
-                                        // Handle base64-encoded image
-                                        if let base64String = profileImageData.components(separatedBy: ",").last {
-                                            if let imageData = Data(base64Encoded: base64String) {
-                                                if let image = NSImage(data: imageData) {
-                                                    profileImage.image = image
-                                                } else {
-                                                    // Use placeholder if image fails to load
-                                                    self.setPlaceholderImage(to: profileImage)
-                                                }
-                                            } else {
-                                                // Use placeholder if base64 data is invalid
-                                                self.setPlaceholderImage(to: profileImage)
-                                            }
-                                        } else {
-                                            // Use placeholder if base64 data is invalid
-                                            self.setPlaceholderImage(to: profileImage)
-                                        }
-                                    } else {
-                                        // Try to load as file path
-                                        let possiblePaths = [
-                                            "Resources/ProfileImages/\(profileImageData)",
-                                            "mac-app/Pen/Resources/ProfileImages/\(profileImageData)",
-                                            "pen/mac-app/Pen/Resources/ProfileImages/\(profileImageData)"
-                                        ]
-                                        
-                                        var foundImage = false
-                                        for path in possiblePaths {
-                                            if let image = NSImage(contentsOfFile: path) {
-                                                profileImage.image = image
-                                                foundImage = true
-                                                break
-                                            }
-                                        }
-                                        
-                                        if !foundImage {
-                                            // Add a placeholder image if no profile image found
-                                            self.setPlaceholderImage(to: profileImage)
-                                        }
-                                    }
-                                } else {
-                                    // Add a placeholder image if no user or no profile image
-                                    self.setPlaceholderImage(to: profileImage)
-                                }
-                            }
-                        }
-                        break
-                    }
-                }
-            }
-        }
     }
 }
