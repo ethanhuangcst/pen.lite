@@ -512,7 +512,7 @@ public class AIManager {
         return AIModelProvider(
             id: Int(connection.id.hashValue),
             name: connection.apiProvider,
-            baseURLs: ["default": connection.apiUrl],
+            baseURLs: ["completion": connection.apiUrl],
             defaultModel: connection.model,
             requiresAuth: true,
             authHeader: "Authorization",
