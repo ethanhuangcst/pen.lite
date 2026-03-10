@@ -3,10 +3,6 @@ import Cocoa
 class InitializationService {
     // MARK: - Properties
     private weak var delegate: PenDelegate?
-    private var isOnline: Bool = false
-    private var internetFailure: Bool = false
-    private var databaseFailure: Bool = false
-    private var needsOnlineLogoutMode: Bool = false
     
     // MARK: - Initialization
     init(delegate: PenDelegate) {
@@ -52,13 +48,11 @@ class InitializationService {
         
         if isInternetAvailable {
             print("InitializationService: Internet connection is available")
-            print(" ********************************** PenAI Initialization: Internet Connectivity: AVAILABLE **********************************")
-            internetFailure = false
+            print("********************************** PenAI Initialization: Internet Connectivity: AVAILABLE **********************************")
             return true
         } else {
             print("InitializationService: Internet connection is unavailable")
-            print(" ********************************** PenAI Initialization: Internet Connectivity: UNAVAILABLE **********************************")
-            internetFailure = true
+            print("********************************** PenAI Initialization: Internet Connectivity: UNAVAILABLE **********************************")
             return false
         }
     }
@@ -88,54 +82,6 @@ class InitializationService {
             }
         } catch {
             print("InitializationService: Error loading AI configurations from files: \(error)")
-        }
-    }
-    
-    /// Loads and tests AI configurations for the user
-    private func loadAndTestAIConfigurations(user: User) {
-        Task {
-            do {
-                // Load all AI configurations for the user
-                guard let aiManager = UserService.shared.aiManager else {
-                    print("InitializationService: AIManager not initialized")
-                    return
-                }
-                let configurations = try await aiManager.getConnections(for: user.id)
-                
-                print("InitializationService: Loaded \(configurations.count) AI configurations for user \(user.name)")
-                
-                if configurations.isEmpty {
-                    // No AI configurations found
-                    print("InitializationService: No AI configurations found for user \(user.name)")
-                    // Wait until previous popup messages fade out (3 seconds + 0.3 seconds fade out)
-                    try await Task.sleep(nanoseconds: 3_300_000_000) // 3.3 seconds
-                    // Show shorter popup message
-                    WindowManager.shared.displayPopupMessage("No AI Configuration set up yet.\nGo to Preference → AI Configuration to set up.")
-                } else {
-                    // Test each AI configuration
-                    for (index, configuration) in configurations.enumerated() {
-                        print("\n********************************** Test AI Configuration for \(user.name) : Provider \(index + 1): \(configuration.apiProvider) **********************************")
-                        
-                        do {
-                            // Test the connection
-                            let success = try await aiManager.testConnection(
-                                apiKey: configuration.apiKey,
-                                providerName: configuration.apiProvider
-                            )
-                            
-                            if success {
-                                print("InitializationService: AI Configuration \(configuration.apiProvider) test successful")
-                            } else {
-                                print("InitializationService: AI Configuration \(configuration.apiProvider) test failed")
-                            }
-                        } catch {
-                            print("InitializationService: Error testing AI Configuration \(configuration.apiProvider): \(error)")
-                        }
-                    }
-                }
-            } catch {
-                print("InitializationService: Error loading AI configurations: \(error)")
-            }
         }
     }
 }
