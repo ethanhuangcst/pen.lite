@@ -53,8 +53,6 @@ class AIConfigurationTabView: NSView, NSTableViewDataSource, NSTableViewDelegate
                     column.title = LocalizationService.shared.localizedString(for: "api_key")
                 case "delete":
                     column.title = LocalizationService.shared.localizedString(for: "delete_column")
-                case "test":
-                    column.title = LocalizationService.shared.localizedString(for: "test_column")
                 default:
                     break
                 }
@@ -75,6 +73,8 @@ class AIConfigurationTabView: NSView, NSTableViewDataSource, NSTableViewDelegate
         // Set data source and delegate
         configurationsTable.dataSource = self
         configurationsTable.delegate = self
+        configurationsTable.target = self
+        configurationsTable.doubleAction = #selector(handleDoubleClick(_:))
         
         // Add scroll view
         let scrollView = NSScrollView(frame: tableContainer.bounds)
@@ -82,6 +82,14 @@ class AIConfigurationTabView: NSView, NSTableViewDataSource, NSTableViewDelegate
         scrollView.hasVerticalScroller = true
         scrollView.hasHorizontalScroller = false
         tableContainer.addSubview(scrollView)
+    }
+    
+    @objc private func handleDoubleClick(_ sender: NSTableView) {
+        let row = sender.clickedRow
+        guard row >= 0, row < configurations.count else { return }
+        
+        let configuration = configurations[row]
+        showEditWindow(configuration: configuration, row: row)
     }
     
     private func loadData() {
@@ -160,50 +168,35 @@ class AIConfigurationTabView: NSView, NSTableViewDataSource, NSTableViewDelegate
         configurationsTable.frame = NSRect(x: 0, y: 0, width: tableContainer.frame.width, height: tableContainer.frame.height)
         configurationsTable.columnAutoresizingStyle = .uniformColumnAutoresizingStyle
         
-        // Create columns
+        // Set row height to accommodate full API key display
+        configurationsTable.rowHeight = 32
+        configurationsTable.usesAutomaticRowHeights = false
+        
+        // Create columns - read-only table
         let providerColumn = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("provider"))
         providerColumn.title = LocalizationService.shared.localizedString(for: "provider_column")
-        providerColumn.width = 68
-        providerColumn.minWidth = 68
-        providerColumn.maxWidth = 68
+        providerColumn.width = 120
+        providerColumn.minWidth = 120
         configurationsTable.addTableColumn(providerColumn)
         
         let apiKeyColumn = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("apiKey"))
         apiKeyColumn.title = LocalizationService.shared.localizedString(for: "api_key")
-        apiKeyColumn.width = 318
-        apiKeyColumn.minWidth = 318
-        apiKeyColumn.maxWidth = 318
+        apiKeyColumn.width = 380
+        apiKeyColumn.minWidth = 380
         configurationsTable.addTableColumn(apiKeyColumn)
         
         let deleteColumn = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("delete"))
         deleteColumn.title = LocalizationService.shared.localizedString(for: "delete_column")
-        deleteColumn.width = 33
-        deleteColumn.minWidth = 33
-        deleteColumn.maxWidth = 33
+        deleteColumn.width = 60
+        deleteColumn.minWidth = 60
         configurationsTable.addTableColumn(deleteColumn)
-        
-        let testColumn = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("test"))
-        testColumn.title = LocalizationService.shared.localizedString(for: "test_column")
-        testColumn.width = 33
-        testColumn.minWidth = 33
-        testColumn.maxWidth = 33
-        configurationsTable.addTableColumn(testColumn)
         
         // Add header view
         let headerView = NSTableHeaderView()
         headerView.frame = NSRect(x: 0, y: configurationsTable.frame.height - 22, width: configurationsTable.frame.width, height: 22)
         configurationsTable.headerView = headerView
         
-        // Add sample rows for UI demonstration
-        addSampleRows()
-        
         tableContainer.addSubview(configurationsTable)
-    }
-    
-    private func addSampleRows() {
-        // Add sample rows for UI demonstration
-        // In a real implementation, we would use a data source
-        // For UI demonstration, we'll just leave the table structure
     }
     
     private func setupActionButtons(windowWidth: CGFloat) {
@@ -237,16 +230,26 @@ class AIConfigurationTabView: NSView, NSTableViewDataSource, NSTableViewDelegate
         
         switch tableColumn.identifier.rawValue {
         case "provider":
-            return createProviderPopup(for: configuration, row: row)
+            return createReadOnlyTextField(value: configuration.apiProvider)
         case "apiKey":
-            return createAPIKeyTextField(for: configuration, row: row)
+            return createReadOnlyTextField(value: configuration.apiKey)
         case "delete":
             return createDeleteButton(row: row)
-        case "test":
-            return createTestButton(configuration: configuration, row: row)
         default:
             return nil
         }
+    }
+    
+    private func createReadOnlyTextField(value: String) -> NSTextField {
+        let textField = NSTextField(frame: NSRect(x: 0, y: 0, width: 100, height: 32))
+        textField.stringValue = value
+        textField.isBezeled = false
+        textField.drawsBackground = false
+        textField.isEditable = false
+        textField.isSelectable = true
+        textField.font = NSFont.systemFont(ofSize: 12)
+        textField.lineBreakMode = .byTruncatingTail
+        return textField
     }
     
     // Disable row reordering
@@ -254,50 +257,8 @@ class AIConfigurationTabView: NSView, NSTableViewDataSource, NSTableViewDelegate
         return false
     }
     
-    private func createProviderPopup(for configuration: AIConnectionModel, row: Int) -> NSPopUpButton {
-        let popupButton = NSPopUpButton(frame: NSRect(x: 0, y: 0, width: 180, height: 24))
-        
-        // Add provider options
-        let availableProviders = ["OpenAI", "DeepSeek", "Qwen"]
-        for provider in availableProviders {
-            popupButton.addItem(withTitle: provider)
-        }
-        
-        // Select the current provider
-        if let index = availableProviders.firstIndex(where: { $0 == configuration.apiProvider }) {
-            popupButton.selectItem(at: index)
-        }
-        
-        // Set action
-        popupButton.target = self
-        popupButton.action = #selector(providerChanged(_:))
-        popupButton.tag = row
-        
-        return popupButton
-    }
-    
-    private func createAPIKeyTextField(for configuration: AIConnectionModel, row: Int) -> NSTextField {
-        let textField = NSTextField(frame: NSRect(x: 0, y: 0, width: 308, height: 24))
-        textField.stringValue = configuration.apiKey
-        textField.placeholderString = LocalizationService.shared.localizedString(for: "api_key")
-        
-        // Enable text truncation
-        if let cell = textField.cell as? NSTextFieldCell {
-            cell.truncatesLastVisibleLine = true
-        }
-        
-        // Set delegate to handle changes
-        textField.delegate = self
-        textField.tag = row
-        
-        // Add tooltip for API key field
-        textField.toolTip = LocalizationService.shared.localizedString(for: "api_key_required")
-        
-        return textField
-    }
-    
     private func createDeleteButton(row: Int) -> NSButton {
-        let button = NSButton(frame: NSRect(x: 9, y: 2, width: 20, height: 20))
+        let button = NSButton(frame: NSRect(x: 20, y: 2, width: 20, height: 20))
         button.bezelStyle = .texturedRounded
         button.setButtonType(.momentaryPushIn)
         button.isBordered = false
@@ -312,35 +273,17 @@ class AIConfigurationTabView: NSView, NSTableViewDataSource, NSTableViewDelegate
         return button
     }
     
-    private func createTestButton(configuration: AIConnectionModel, row: Int) -> NSButton {
-        let button = NSButton(frame: NSRect(x: 9, y: 2, width: 20, height: 20))
-        button.bezelStyle = .texturedRounded
-        button.setButtonType(.momentaryPushIn)
-        button.isBordered = false
-        let imagePath = ResourceService.shared.getResourcePath(relativePath: "Assets/save.svg")
-        let image = NSImage(contentsOfFile: imagePath)
-        image?.size = NSSize(width: 18, height: 18)
-        button.image = image
-        button.target = self
-        button.action = #selector(testConfiguration(_:))
-        button.tag = row
-        button.contentTintColor = NSColor.systemBlue
-        // Disable button if API key is empty
-        button.isEnabled = !configuration.apiKey.isEmpty
-        return button
-    }
-    
     // MARK: - Actions
-    @objc private func providerChanged(_ sender: NSPopUpButton) {
-        let row = sender.tag
-        if row < configurations.count, let selectedItem = sender.selectedItem {
-            configurations[row].apiProvider = selectedItem.title
-        }
-    }
     
     @objc private func deleteConfiguration(_ sender: NSButton) {
         let row = sender.tag
         if row < configurations.count {
+            // Check if this is the last configuration
+            if configurations.count <= 1 {
+                WindowManager.shared.displayPopupMessage(LocalizationService.shared.localizedString(for: "cannot_delete_last_configuration"))
+                return
+            }
+            
             let configuration = configurations[row]
             
             // Show custom confirmation dialog
@@ -372,107 +315,6 @@ class AIConfigurationTabView: NSView, NSTableViewDataSource, NSTableViewDelegate
         }
     }
     
-    @objc private func testConfiguration(_ sender: NSButton) {
-        let row = sender.tag
-        if row < configurations.count {
-            let configuration = configurations[row]
-            print("Testing configuration: \(configuration.apiProvider)")
-            
-            // Test the configuration
-            testAIConfiguration(configuration: configuration, row: row)
-        }
-    }
-    
-    private func testAIConfiguration(configuration: AIConnectionModel, row: Int) {
-        // Check for duplicate configurations
-        let duplicateRows = checkForDuplicates(configuration: configuration, currentRow: row)
-        if !duplicateRows.isEmpty {
-            // Highlight duplicate rows
-            highlightDuplicateRows(duplicateRows)
-            
-            // Show popup message
-            WindowManager.shared.displayPopupMessage(LocalizationService.shared.localizedString(for: "duplicated_api_key_or_provider"))
-            return
-        }
-        
-        // Show testing message
-        WindowManager.shared.displayPopupMessage(LocalizationService.shared.localizedString(for: "testing_provider", withFormat: configuration.apiProvider))
-        
-        // Make actual API call to test the configuration
-        Task {
-            await testAIConfigurationAsync(configuration, row: row)
-        }
-    }
-    
-    private func testAIConfigurationAsync(_ configuration: AIConnectionModel, row: Int) async {
-        do {
-            // Test the configuration (simplified for now)
-            print("Testing AI configuration: \(configuration.apiProvider)")
-            
-            // Test successful
-            let isNewConnection = false // All connections are saved immediately in file storage
-            
-            // Save configuration to files
-            try AIConnectionService.shared.saveConnections(configurations)
-            print(" $$$$$$$$$$$$$$$$$$$$ AI Connection \(configuration.apiProvider) is saved $$$$$$$$$$$$$$$$$$$$")
-            
-            // Reload configurations to get the updated list
-            await self.loadConfigurations()
-            
-            DispatchQueue.main.async {
-                // Check if the row still exists
-                if row < self.configurations.count {
-                    // Highlight the API key field in red for 2 seconds
-                    if let textField = self.configurationsTable.view(atColumn: 1, row: row, makeIfNecessary: false) as? NSTextField {
-                        textField.layer?.borderWidth = 1.0
-                        textField.layer?.borderColor = NSColor.systemRed.cgColor
-                        textField.layer?.cornerRadius = 4.0
-                        textField.toolTip = LocalizationService.shared.localizedString(for: "ai_connection_test_passed")
-                        
-                        // Reset highlight after 2 seconds
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                            textField.layer?.borderWidth = 0.0
-                            textField.toolTip = LocalizationService.shared.localizedString(for: "api_key_required")
-                        }
-                    }
-                }
-                
-                // Show popup message
-                let message = LocalizationService.shared.localizedString(for: "ai_connection_test_passed_updated", withFormat: configuration.apiProvider)
-                WindowManager.shared.displayPopupMessage(message)
-            }
-        } catch {
-            // Test failed
-            print(" $$$$$$$$$$$$$$$$$$$$ AI Connection test failed $$$$$$$$$$$$$$$$$$$$")
-            print("Error testing configuration: \(error)")
-            let errorDescription = error.localizedDescription
-            
-            DispatchQueue.main.async {
-                // Check if the row still exists
-                if row < self.configurations.count {
-                    // Highlight the API key field in red for 2 seconds
-                    if let textField = self.configurationsTable.view(atColumn: 1, row: row, makeIfNecessary: false) as? NSTextField {
-                        textField.layer?.borderWidth = 1.0
-                        textField.layer?.borderColor = NSColor.systemRed.cgColor
-                        textField.layer?.cornerRadius = 4.0
-                        textField.toolTip = errorDescription
-                        
-                        // Reset highlight after 2 seconds
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                            textField.layer?.borderWidth = 0.0
-                            textField.toolTip = LocalizationService.shared.localizedString(for: "api_key_required")
-                        }
-                    }
-                }
-                
-                // Show popup message
-                let message = LocalizationService.shared.localizedString(for: "ai_connection_test_failed_updated", withFormat: configuration.apiProvider)
-                WindowManager.shared.displayPopupMessage(message)
-                WindowManager.shared.displayPopupMessage(errorDescription)
-            }
-        }
-    }
-    
     @objc private func addNewConfiguration() {
         // Create a new configuration with default values
         let newConfiguration = AIConnectionModel(
@@ -486,83 +328,35 @@ class AIConfigurationTabView: NSView, NSTableViewDataSource, NSTableViewDelegate
         configurations.append(newConfiguration)
         configurationsTable.reloadData()
     }
-
-    private func checkForDuplicates(configuration: AIConnectionModel, currentRow: Int) -> [Int] {
-        var duplicateRows: [Int] = []
-        
-        for (index, config) in configurations.enumerated() {
-            if index != currentRow && config.apiProvider == configuration.apiProvider && config.apiKey == configuration.apiKey {
-                duplicateRows.append(index)
-            }
-        }
-        
-        return duplicateRows
-    }
-
-    private func highlightDuplicateRows(_ rows: [Int]) {
-        for row in rows {
-            if let textField = configurationsTable.view(atColumn: 1, row: row, makeIfNecessary: false) as? NSTextField {
-                textField.layer?.borderWidth = 1.0
-                textField.layer?.borderColor = NSColor.systemRed.cgColor
-                textField.layer?.cornerRadius = 4.0
-                textField.toolTip = LocalizationService.shared.localizedString(for: "duplicated_configuration")
-            }
-        }
-        
-        // Reset highlights after 2 seconds
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-            for row in rows {
-                if let textField = self.configurationsTable.view(atColumn: 1, row: row, makeIfNecessary: false) as? NSTextField {
-                    textField.layer?.borderWidth = 0.0
-                    textField.toolTip = LocalizationService.shared.localizedString(for: "api_key_required")
-                }
-            }
-        }
-    }
-
-
-
-    private func highlightInvalidFields(invalidRows: [Int], duplicateRows: [Int]) {
-        // Loop through all rows and highlight fields
-        for row in 0..<configurations.count {
-            // Get the API key text field for this row
-            let view = configurationsTable.view(atColumn: 1, row: row, makeIfNecessary: false)
-            if let textField = view as? NSTextField {
-                if invalidRows.contains(row) {
-                    // Highlight empty API key fields in red
-                    textField.layer?.borderWidth = 1.0
-                    textField.layer?.borderColor = NSColor.systemRed.cgColor
-                    textField.layer?.cornerRadius = 4.0
-                    textField.toolTip = LocalizationService.shared.localizedString(for: "api_key_required")
-                } else if duplicateRows.contains(row) {
-                    // Highlight duplicate configurations in red
-                    textField.layer?.borderWidth = 1.0
-                    textField.layer?.borderColor = NSColor.systemRed.cgColor
-                    textField.layer?.cornerRadius = 4.0
-                    textField.toolTip = LocalizationService.shared.localizedString(for: "duplicated_configuration")
-                } else {
-                    // Reset border for valid fields
-                    textField.layer?.borderWidth = 0.0
-                    textField.toolTip = LocalizationService.shared.localizedString(for: "api_key_required")
-                }
-            }
-        }
-    }
     
     // Store configurations temporarily for delete confirmation
     private var configurationsForDelete: [AIConnectionModel] = []
     
     private func showDeleteConfirmationDialog(configuration: AIConnectionModel, row: Int) {
-        // Get mouse location for positioning
-        let mouseLocation = NSEvent.mouseLocation
-        
         // Create custom dialog window
         let dialogWidth: CGFloat = 238
         let dialogHeight: CGFloat = 100
         
-        // Calculate window position: bottom-right corner at mouse cursor + 6px
-        let originX = mouseLocation.x + 6 - dialogWidth
-        let originY = mouseLocation.y + 6 - dialogHeight
+        // Calculate position - center in edit window if available, otherwise center in settings window
+        var originX: CGFloat = 0
+        var originY: CGFloat = 0
+        
+        if let editWindow = editWindow {
+            // Center in edit window
+            let editFrame = editWindow.frame
+            originX = editFrame.origin.x + (editFrame.width - dialogWidth) / 2
+            originY = editFrame.origin.y + (editFrame.height - dialogHeight) / 2
+        } else if let settingsWindow = self.window {
+            // Center in settings window
+            let settingsFrame = settingsWindow.frame
+            originX = settingsFrame.origin.x + (settingsFrame.width - dialogWidth) / 2
+            originY = settingsFrame.origin.y + (settingsFrame.height - dialogHeight) / 2
+        } else {
+            // Fallback to mouse location
+            let mouseLocation = NSEvent.mouseLocation
+            originX = mouseLocation.x - dialogWidth / 2
+            originY = mouseLocation.y - dialogHeight / 2
+        }
         
         let dialogWindow = NSWindow(
             contentRect: NSRect(x: originX, y: originY, width: dialogWidth, height: dialogHeight),
@@ -634,7 +428,7 @@ class AIConfigurationTabView: NSView, NSTableViewDataSource, NSTableViewDelegate
         dialogWindow.contentView = contentView
         
         // Clamp window to screen bounds
-        if let screen = NSScreen.screens.first(where: { $0.frame.contains(mouseLocation) }) ?? NSScreen.main {
+        if let screen = NSScreen.main {
             let visibleFrame = screen.visibleFrame
             var frame = dialogWindow.frame
             
@@ -679,32 +473,276 @@ class AIConfigurationTabView: NSView, NSTableViewDataSource, NSTableViewDelegate
         }
     }
     
-
-}
-
-// MARK: - NSTextFieldDelegate
- extension AIConfigurationTabView: NSTextFieldDelegate {
-    func controlTextDidEndEditing(_ obj: Notification) {
-        if let textField = obj.object as? NSTextField, let row = textField.tag as? Int {
-            if row < configurations.count {
-                configurations[row].apiKey = textField.stringValue
-                // Reset border when text is entered
-                textField.layer?.borderWidth = 0.0
+    // MARK: - Edit Window
+    
+    private var editWindow: NSWindow?
+    private var editingConfiguration: AIConnectionModel?
+    private var editingRow: Int = -1
+    private var providerField: NSTextField?
+    private var apiKeyField: NSTextField?
+    private var baseUrlField: NSTextField?
+    private var modelField: NSTextField?
+    
+    private func showEditWindow(configuration: AIConnectionModel, row: Int) {
+        // Store the configuration being edited
+        editingConfiguration = configuration
+        editingRow = row
+        
+        // Create edit window - borderless style to remove toolbar and system controls
+        let windowWidth: CGFloat = 450
+        let windowHeight: CGFloat = 380
+        
+        editWindow = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: windowWidth, height: windowHeight),
+            styleMask: [.titled, .fullSizeContentView],
+            backing: .buffered,
+            defer: false
+        )
+        
+        guard let editWindow = editWindow else { return }
+        
+        // Configure window - hide title bar while keeping keyboard input
+        editWindow.titlebarAppearsTransparent = true
+        editWindow.titleVisibility = .hidden
+        editWindow.isMovableByWindowBackground = true
+        editWindow.level = .floating
+        editWindow.hasShadow = true
+        
+        // Create content view with rounded corners
+        let contentView = NSView(frame: NSRect(x: 0, y: 0, width: windowWidth, height: windowHeight))
+        contentView.wantsLayer = true
+        contentView.layer?.backgroundColor = ColorService.shared.backgroundColorCGColor
+        contentView.layer?.cornerRadius = 12
+        contentView.layer?.masksToBounds = true
+        
+        // Add title label (since we removed the title bar)
+        let titleLabel = NSTextField(frame: NSRect(x: 20, y: windowHeight - 40, width: windowWidth - 40, height: 24))
+        titleLabel.stringValue = LocalizationService.shared.localizedString(for: "edit_ai_connection")
+        titleLabel.isBezeled = false
+        titleLabel.drawsBackground = false
+        titleLabel.isEditable = false
+        titleLabel.font = NSFont.boldSystemFont(ofSize: 16)
+        titleLabel.alignment = .center
+        contentView.addSubview(titleLabel)
+        
+        // Add close button (X) in top right corner
+        let closeButton = NSButton(frame: NSRect(x: windowWidth - 35, y: windowHeight - 35, width: 20, height: 20))
+        closeButton.title = "×"
+        closeButton.font = NSFont.boldSystemFont(ofSize: 18)
+        closeButton.bezelStyle = .circular
+        closeButton.isBordered = false
+        closeButton.target = self
+        closeButton.action = #selector(cancelEditWindow)
+        contentView.addSubview(closeButton)
+        
+        // Add fields
+        let labelWidth: CGFloat = 100
+        let fieldWidth: CGFloat = 300
+        let fieldHeight: CGFloat = 24
+        let largeFieldHeight: CGFloat = 44
+        let startX: CGFloat = 20
+        let startY: CGFloat = windowHeight - 80
+        let rowSpacing: CGFloat = 60
+        
+        // Provider Name
+        let providerLabel = NSTextField(frame: NSRect(x: startX, y: startY, width: labelWidth, height: fieldHeight))
+        providerLabel.stringValue = LocalizationService.shared.localizedString(for: "provider_name")
+        providerLabel.isBezeled = false
+        providerLabel.drawsBackground = false
+        providerLabel.isEditable = false
+        providerLabel.font = NSFont.systemFont(ofSize: 13)
+        contentView.addSubview(providerLabel)
+        
+        providerField = NSTextField(frame: NSRect(x: startX + labelWidth, y: startY, width: fieldWidth, height: fieldHeight))
+        providerField?.stringValue = configuration.apiProvider
+        providerField?.font = NSFont.systemFont(ofSize: 13)
+        contentView.addSubview(providerField!)
+        
+        // API Key - larger field with more height
+        let apiKeyLabel = NSTextField(frame: NSRect(x: startX, y: startY - rowSpacing + 20, width: labelWidth, height: fieldHeight))
+        apiKeyLabel.stringValue = LocalizationService.shared.localizedString(for: "api_key")
+        apiKeyLabel.isBezeled = false
+        apiKeyLabel.drawsBackground = false
+        apiKeyLabel.isEditable = false
+        apiKeyLabel.font = NSFont.systemFont(ofSize: 13)
+        contentView.addSubview(apiKeyLabel)
+        
+        // API Key field - larger height for long keys
+        apiKeyField = NSTextField(frame: NSRect(x: startX + labelWidth, y: startY - rowSpacing, width: fieldWidth, height: largeFieldHeight))
+        apiKeyField?.stringValue = configuration.apiKey
+        apiKeyField?.font = NSFont.systemFont(ofSize: 12)
+        apiKeyField?.lineBreakMode = .byTruncatingMiddle
+        contentView.addSubview(apiKeyField!)
+        
+        // Base URL - larger field with more height
+        let baseUrlLabel = NSTextField(frame: NSRect(x: startX, y: startY - rowSpacing * 2 + 20, width: labelWidth, height: fieldHeight))
+        baseUrlLabel.stringValue = LocalizationService.shared.localizedString(for: "base_url")
+        baseUrlLabel.isBezeled = false
+        baseUrlLabel.drawsBackground = false
+        baseUrlLabel.isEditable = false
+        baseUrlLabel.font = NSFont.systemFont(ofSize: 13)
+        contentView.addSubview(baseUrlLabel)
+        
+        // Base URL field - larger height for long URLs
+        baseUrlField = NSTextField(frame: NSRect(x: startX + labelWidth, y: startY - rowSpacing * 2, width: fieldWidth, height: largeFieldHeight))
+        baseUrlField?.stringValue = configuration.apiUrl
+        baseUrlField?.font = NSFont.systemFont(ofSize: 12)
+        baseUrlField?.lineBreakMode = .byTruncatingMiddle
+        contentView.addSubview(baseUrlField!)
+        
+        // Model
+        let modelLabel = NSTextField(frame: NSRect(x: startX, y: startY - rowSpacing * 3 + 20, width: labelWidth, height: fieldHeight))
+        modelLabel.stringValue = LocalizationService.shared.localizedString(for: "model")
+        modelLabel.isBezeled = false
+        modelLabel.drawsBackground = false
+        modelLabel.isEditable = false
+        modelLabel.font = NSFont.systemFont(ofSize: 13)
+        contentView.addSubview(modelLabel)
+        
+        modelField = NSTextField(frame: NSRect(x: startX + labelWidth, y: startY - rowSpacing * 3 + 20, width: fieldWidth, height: fieldHeight))
+        modelField?.stringValue = configuration.model
+        modelField?.font = NSFont.systemFont(ofSize: 13)
+        contentView.addSubview(modelField!)
+        
+        // Buttons
+        let buttonY: CGFloat = 20
+        let buttonWidth: CGFloat = 100
+        let buttonHeight: CGFloat = 32
+        
+        // Cancel button
+        let cancelButton = NSButton(frame: NSRect(x: startX, y: buttonY, width: buttonWidth, height: buttonHeight))
+        cancelButton.title = LocalizationService.shared.localizedString(for: "cancel_button")
+        cancelButton.bezelStyle = .rounded
+        cancelButton.target = self
+        cancelButton.action = #selector(cancelEditWindow)
+        contentView.addSubview(cancelButton)
+        
+        // Test & Save button
+        let testSaveButton = NSButton(frame: NSRect(x: startX + buttonWidth + 20, y: buttonY, width: buttonWidth + 40, height: buttonHeight))
+        testSaveButton.title = LocalizationService.shared.localizedString(for: "test_and_save_button")
+        testSaveButton.bezelStyle = .rounded
+        testSaveButton.target = self
+        testSaveButton.action = #selector(saveConfiguration)
+        testSaveButton.layer?.borderWidth = 1.0
+        testSaveButton.layer?.borderColor = NSColor.systemGreen.cgColor
+        testSaveButton.layer?.cornerRadius = 6.0
+        contentView.addSubview(testSaveButton)
+        
+        // Delete button
+        let deleteButton = NSButton(frame: NSRect(x: windowWidth - buttonWidth - 20, y: buttonY, width: buttonWidth, height: buttonHeight))
+        deleteButton.title = LocalizationService.shared.localizedString(for: "delete_button")
+        deleteButton.bezelStyle = .rounded
+        deleteButton.target = self
+        deleteButton.action = #selector(deleteFromEditWindow)
+        deleteButton.layer?.borderWidth = 1.0
+        deleteButton.layer?.borderColor = NSColor.systemRed.cgColor
+        deleteButton.layer?.cornerRadius = 6.0
+        deleteButton.contentTintColor = NSColor.systemRed
+        contentView.addSubview(deleteButton)
+        
+        editWindow.contentView = contentView
+        
+        // Center the edit window in the Settings window
+        if let settingsWindow = self.window {
+            let settingsFrame = settingsWindow.frame
+            let editFrame = editWindow.frame
+            
+            let centerX = settingsFrame.origin.x + (settingsFrame.width - editFrame.width) / 2
+            let centerY = settingsFrame.origin.y + (settingsFrame.height - editFrame.height) / 2
+            
+            editWindow.setFrameOrigin(NSPoint(x: centerX, y: centerY))
+        }
+        
+        // Activate app and show window with focus
+        NSApp.setActivationPolicy(.regular)
+        NSApp.activate(ignoringOtherApps: true)
+        editWindow.makeKeyAndOrderFront(nil)
+        
+        // Set first responder to provider field after a short delay
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+            if let providerField = self?.providerField {
+                self?.editWindow?.makeFirstResponder(providerField)
             }
         }
     }
     
-    func controlTextDidChange(_ obj: Notification) {
-        if let textField = obj.object as? NSTextField, let row = textField.tag as? Int {
-            if row < configurations.count {
-                // Reset border as soon as user starts typing
-                textField.layer?.borderWidth = 0.0
-                // Enable/disable Save button based on API key
-                let apiKey = textField.stringValue
-                if let saveButton = configurationsTable.view(atColumn: 3, row: row, makeIfNecessary: false) as? NSButton {
-                    saveButton.isEnabled = !apiKey.isEmpty
-                }
-            }
+    @objc private func cancelEditWindow() {
+        editWindow?.orderOut(nil)
+        editWindow = nil
+        editingConfiguration = nil
+        editingRow = -1
+    }
+    
+    @objc private func saveConfiguration() {
+        guard let provider = providerField?.stringValue,
+              let apiKey = apiKeyField?.stringValue,
+              let baseUrl = baseUrlField?.stringValue,
+              let model = modelField?.stringValue,
+              let configuration = editingConfiguration,
+              editingRow >= 0 else {
+            return
         }
+        
+        // Validate fields
+        guard !provider.isEmpty else {
+            WindowManager.shared.displayPopupMessage(LocalizationService.shared.localizedString(for: "provider_name_required"))
+            return
+        }
+        
+        guard !apiKey.isEmpty else {
+            WindowManager.shared.displayPopupMessage(LocalizationService.shared.localizedString(for: "api_key_required"))
+            return
+        }
+        
+        guard !baseUrl.isEmpty else {
+            WindowManager.shared.displayPopupMessage(LocalizationService.shared.localizedString(for: "base_url_required"))
+            return
+        }
+        
+        guard !model.isEmpty else {
+            WindowManager.shared.displayPopupMessage(LocalizationService.shared.localizedString(for: "model_required"))
+            return
+        }
+        
+        // Create updated configuration
+        let updatedConfiguration = AIConnectionModel(
+            id: configuration.id,
+            apiProvider: provider,
+            apiKey: apiKey,
+            apiUrl: baseUrl,
+            model: model,
+            isDefault: configuration.isDefault
+        )
+        
+        // Save configuration
+        self.configurations[self.editingRow] = updatedConfiguration
+        try? AIConnectionService.shared.saveConnections(self.configurations)
+        
+        self.configurationsTable.reloadData()
+        
+        // Show success message and wait before closing
+        WindowManager.shared.displayPopupMessage(LocalizationService.shared.localizedString(for: "ai_connection_saved_successfully"))
+        print(" $$$$$$$$$$$$$$$$$$$$ AI Connection \(provider) saved! $$$$$$$$$$$$$$$$$$$$")
+        
+        // Wait 2 seconds before closing the window
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            self.editWindow?.orderOut(nil)
+            self.editWindow = nil
+            self.editingConfiguration = nil
+            self.editingRow = -1
+        }
+    }
+    
+    @objc private func deleteFromEditWindow() {
+        guard let configuration = editingConfiguration, editingRow >= 0 else { return }
+        
+        // Check if this is the last configuration
+        if configurations.count <= 1 {
+            WindowManager.shared.displayPopupMessage(LocalizationService.shared.localizedString(for: "cannot_delete_last_configuration"))
+            return
+        }
+        
+        // Show delete confirmation dialog without closing edit window
+        showDeleteConfirmationDialog(configuration: configuration, row: editingRow)
     }
 }

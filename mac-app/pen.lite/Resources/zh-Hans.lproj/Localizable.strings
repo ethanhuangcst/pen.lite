@@ -84,6 +84,7 @@
 "delete_button" = "删除";
 "test_button" = "测试";
 "provider_column" = "提供商";
+"provider" = "提供商";
 "delete_column" = "删除";
 "test_column" = "保存";
 "first_connection_default" = "第一个连接将被用作默认连接。";
@@ -95,6 +96,20 @@
 "only_valid_no_duplicate_connections_saved" = "只保存具有有效 API 密钥且非重复的 AI 连接！";
 "failed_to_save_connections" = "保存 AI 连接失败！";
 "are_you_sure" = "确定吗？";
+"cannot_delete_last_configuration" = "无法删除最后一个 AI 配置。至少需要一个配置。";
+
+/* Edit AI Connection Window */
+"edit_ai_connection" = "编辑 AI 连接";
+"provider_name" = "提供商名称";
+"base_url" = "基础 URL";
+"model" = "模型";
+"save_button" = "保存";
+"test_and_save_button" = "测试并保存";
+"provider_name_required" = "提供商名称不能为空";
+"base_url_required" = "基础 URL 不能为空";
+"model_required" = "模型不能为空";
+"testing_provider" = "正在测试 %@...";
+"ai_connection_saved_successfully" = "AI 连接保存成功！";
 
 /* Tooltips */
 "api_key_required" = "需要 API 密钥";

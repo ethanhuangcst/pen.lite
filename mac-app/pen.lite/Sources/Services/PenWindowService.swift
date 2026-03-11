@@ -255,9 +255,6 @@ class PenWindowService {
         // Add controller container
         addControllerContainer(to: contentView)
         
-        // Add user label container
-        addUserLabelContainer(to: contentView)
-        
         // Add original text container
         addOriginalTextContainer(to: contentView)
         
@@ -655,33 +652,6 @@ class PenWindowService {
         NSRect(x: 0, y: 0, width: 20, height: 20).fill()
         placeholderImage.unlockFocus()
         imageView.image = placeholderImage
-    }
-    
-    private func addUserLabelContainer(to contentView: NSView) {
-        let userLabelContainer = NSView(frame: NSRect(x: 232, y: 359, width: 120, height: 30))
-        userLabelContainer.wantsLayer = true
-        userLabelContainer.layer?.backgroundColor = NSColor.clear.cgColor
-        userLabelContainer.identifier = NSUserInterfaceItemIdentifier("pen_userlabel")
-        
-        let profileImage = NSImageView(frame: NSRect(x: 0, y: 0, width: 20, height: 20))
-        profileImage.identifier = NSUserInterfaceItemIdentifier("pen_userlabel_img")
-        setPlaceholderImage(to: profileImage)
-        
-        let userNameLabel = NSTextField(frame: NSRect(x: 26, y: -13, width: 90, height: 30))
-        userNameLabel.identifier = NSUserInterfaceItemIdentifier("pen_userlable_text")
-        userNameLabel.stringValue = LocalizationService.shared.localizedString(for: "pen_ai")
-        
-        userNameLabel.isBezeled = false
-        userNameLabel.drawsBackground = false
-        userNameLabel.isEditable = false
-        userNameLabel.isSelectable = false
-        userNameLabel.font = NSFont.boldSystemFont(ofSize: 12)
-        userNameLabel.textColor = NSColor.labelColor
-        userNameLabel.alignment = .left
-        
-        userLabelContainer.addSubview(profileImage)
-        userLabelContainer.addSubview(userNameLabel)
-        contentView.addSubview(userLabelContainer)
     }
     
     private func trimTextToFitWidth(_ text: String, font: NSFont, maxWidth: CGFloat) -> String {

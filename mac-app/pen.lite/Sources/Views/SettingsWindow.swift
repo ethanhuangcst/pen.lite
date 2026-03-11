@@ -5,7 +5,6 @@ class SettingsWindow: BaseWindow {
     private let windowWidth: CGFloat = 600
     
     private var titleLabel: NSTextField!
-    private var userNameLabel: NSTextField!
     private var tabView: NSTabView!
     
     // MARK: - Initialization
@@ -33,9 +32,6 @@ class SettingsWindow: BaseWindow {
         
         // Update title
         titleLabel?.stringValue = LocalizationService.shared.localizedString(for: "pen_ai_preferences")
-        
-        // Update user name label
-        userNameLabel?.stringValue = LocalizationService.shared.localizedString(for: "pen_ai")
         
         // Update tab labels
         updateTabLabels()
@@ -104,18 +100,6 @@ class SettingsWindow: BaseWindow {
         titleLabel.isSelectable = false
         titleLabel.font = NSFont.boldSystemFont(ofSize: 18)
         contentView.addSubview(titleLabel)
-        
-        // Add user name label
-        userNameLabel = NSTextField(frame: NSRect(x: 370, y: windowHeight - 55, width: 180, height: 30))
-        userNameLabel.identifier = NSUserInterfaceItemIdentifier("settings_user_name")
-        userNameLabel.stringValue = LocalizationService.shared.localizedString(for: "pen_ai")
-        userNameLabel.isBezeled = false
-        userNameLabel.drawsBackground = false
-        userNameLabel.isEditable = false
-        userNameLabel.isSelectable = false
-        userNameLabel.font = NSFont.boldSystemFont(ofSize: 18)
-        userNameLabel.alignment = .right
-        contentView.addSubview(userNameLabel)
         
         // Add user_settings frame
         let userSettingsFrame = NSView(frame: NSRect(x: 20, y: 20, width: windowWidth - 40, height: windowHeight - 120)) // Space from header

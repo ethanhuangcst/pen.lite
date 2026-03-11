@@ -62,21 +62,21 @@ class InitializationService {
             // Create default AI connections
             let defaultConnections = [
                 AIConnectionModel(
-                    apiProvider: "qwen",
+                    apiProvider: "Qwen",
                     apiKey: "sk-b87bcf7a745644a8bd72b5cea88d6f27",
                     apiUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1",
                     model: "qwen-plus",
                     isDefault: true
                 ),
                 AIConnectionModel(
-                    apiProvider: "gpt",
+                    apiProvider: "OpenAI",
                     apiKey: "sk-VdihYuyJpOjAC8Qv6kmkYVT56mRaG3nkkjHm0lTIxZ38ub3O",
                     apiUrl: "https://openaiss.com/v1",
                     model: "gpt-5.2-all",
                     isDefault: false
                 ),
                 AIConnectionModel(
-                    apiProvider: "deepseek",
+                    apiProvider: "DeepSeek",
                     apiKey: "sk-366a2d261ad84510a612fddfd47ccc9f",
                     apiUrl: "https://api.deepseek.com/v1",
                     model: "deepseek-chat",
