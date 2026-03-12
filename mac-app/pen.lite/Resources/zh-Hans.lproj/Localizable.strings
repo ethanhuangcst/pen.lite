@@ -7,34 +7,18 @@
 "click_to_reload" = "点击重新加载";
 
 /* Settings window */
-"pen_ai_preferences" = "Pen - 设置";
-"language_label" = "选择系统语言：";
+"pen_ai_preferences" = "Pen Lite - 设置";
+"language_label" = "语言：";
 "close" = "关闭";
 "ai_connections" = "AI 连接";
 "prompts" = "提示词";
-
-/* Login window */
-"pen_ai_login" = "Pen Lite - 登录";
-"email_label" = "邮箱：";
-"enter_email_placeholder" = "输入您的邮箱";
-"password_label" = "密码：";
-"enter_password_placeholder" = "输入您的密码";
-"remember_me" = "记住我";
-"login_button" = "登录";
 "cancel_button" = "取消";
 
 /* Language settings */
-"language_title" = "选择语言";
-"select_language" = "选择语言：";
-"english_language" = "English";
-"chinese_language" = "简体中文 (Simplified Chinese)";
 "save_button" = "保存";
-"settings_saved_successfully" = "设置保存成功";
-"settings_save_error" = "保存设置失败，请重试。";
-"general_settings_saved" = "通用设置已保存";
 
 /* AI Connections tab */
-"ai_connections_for" = "AI 连接";
+"ai_connections_for" = "%@ 的 AI 连接";
 "ai_model_provider" = "AI 模型提供商";
 "api_key" = "API 密钥";
 "new_button" = "新建";
@@ -91,9 +75,6 @@
 "save_button_accessibility" = "保存";
 "close_button_accessibility" = "关闭";
 
-/* Main window */
-"no_ai_configuration" = "尚未设置 AI 配置。\n请前往设置 → AI 配置进行设置。";
-
 /* Menu items */
 "preferences" = "设置";
 "login" = "登录";
@@ -112,45 +93,27 @@
 "pen_manual_input_hint" = "Command + enter 开始优化...";
 
 /* Prompts tab */
-"prompts_title" = "提示词";
 "first_prompt_default" = "您需要保留至少一个提示词。";
 "prompt_name_column" = "名称";
 "prompt_text_column" = "提示词 - 悬停查看完整内容";
 "edit_button" = "编辑";
-"delete_prompt_title" = "删除提示词";
-"delete_prompt_confirmation" = "您确定要删除此提示词吗？";
 "prompt_deleted_successfully" = "提示词删除成功";
-"edit_prompt_title" = "编辑提示词";
-"new_prompt_title" = "新建提示词";
-"prompt_name_label" = "提示词名称";
-"enter_prompt_name_placeholder" = "输入提示词名称";
-"enter_prompt_name_tooltip" = "输入提示词名称";
-"markdown_format_recommended_tooltip" = "建议使用 Markdown 格式编写提示词";
-"all_fields_required" = "所有字段为必填项";
-"name_label" = "名称：";
-"prompt_label" = "提示词：";
 "prompt_updated_successfully" = "提示词更新成功";
 "prompt_created_successfully" = "提示词创建成功";
-"create_new_prompt_canceled" = "创建新提示词已取消，所有更改已丢弃";
-"edit_prompt_canceled" = "编辑提示词已取消，所有更改已丢弃";
 "failed_to_load_prompts" = "加载提示词失败";
 "failed_to_create_prompt" = "创建提示词失败";
 "failed_to_update_prompt" = "更新提示词失败";
 "failed_to_delete_prompt" = "删除提示词失败";
 "no_prompts_saved_yet" = "尚未保存任何提示词";
-"set_as_default_prompt" = "设为默认提示词";
 
 /* Clipboard messages */
 "clipboard_empty_message" = "剪贴板为空。请复制文本后点击粘贴按钮，或使用热键处理。";
 "clipboard_non_text_message" = "剪贴板中的文本内容将自动获取到这里";
 "clipboard_access_error" = "无法访问剪贴板，请重试。";
 "text_copied_to_clipboard" = "文本已复制到剪贴板";
-"content_copied_to_clipboard" = "内容已复制到剪贴板。";
 "failed_to_copy_to_clipboard" = "复制到剪贴板失败，\n请重试";
 
 /* Pen window */
-"pen_load_login_error" = "Pen 无法加载您的登录信息。\n请登录后重试。";
-"pen_not_logged_in_error" = "Pen 无法在您未登录时为您服务。\n请登录后重试。";
 "pen_no_ai_connections" = "您还没有任何可用的 AI 连接，请前往设置 - AI 连接设置新连接。";
 "pen_ai_configuration_failure" = "加载 AI 连接失败。\n请稍后重试。";
 "pen_enhanced_text_placeholder" = "优化后的文本将显示在这里";
@@ -163,7 +126,7 @@
 "pen_refining_content" = "正在优化...";
 
 /* Prompts tab */
-"predefined_prompts_for" = "预定义提示词";
+"predefined_prompts_for" = "%@ 的预定义提示词";
 "default_suffix" = "(默认)";
 "cannot_delete_last_prompt" = "无法删除最后一个提示词";
 
@@ -179,14 +142,6 @@
 "menu_find" = "查找...";
 "menu_find_next" = "查找下一个";
 "menu_find_previous" = "查找上一个";
-
-/* Appearance Section */
-"appearance_title" = "外观";
-"auto_switch_appearance" = "自动切换外观";
-"appearance_mode" = "外观模式";
-"light_mode" = "浅色";
-"dark_mode" = "深色";
-"auto_switch_appearance_description" = "根据系统设置自动切换浅色和深色模式";
 
 /* Test */
 "test_popup_message" = "测试弹出消息";
