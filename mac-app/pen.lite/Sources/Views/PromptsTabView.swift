@@ -249,7 +249,7 @@ class PromptsTabView: NSView, NSTableViewDataSource, NSTableViewDelegate {
     
     // MARK: - Mock Data
     private func loadMockData() {
-        // Create mock prompts based on prompts_sample.md
+        // Create mock prompts based on prompts_sample.json
         let prompt1 = Prompt(
             id: "prompt-1",
             promptName: "Five Language Translator",
@@ -313,10 +313,11 @@ class PromptsTabView: NSView, NSTableViewDataSource, NSTableViewDelegate {
             return createEditButton(tag: row)
         case "delete":
             let deleteButton = createDeleteButton(tag: row)
-            if prompt.isDefault {
+            let isLastPrompt = prompts.count == 1
+            if isLastPrompt {
                 deleteButton.isEnabled = false
                 deleteButton.contentTintColor = NSColor.secondaryLabelColor
-                deleteButton.toolTip = LocalizationService.shared.localizedString(for: "default_prompt_cannot_be_deleted")
+                deleteButton.toolTip = LocalizationService.shared.localizedString(for: "cannot_delete_last_prompt")
             }
             return deleteButton
         default:
@@ -433,10 +434,7 @@ class PromptsTabView: NSView, NSTableViewDataSource, NSTableViewDelegate {
                 Task {
                     do {
                         // Update prompt in files
-                        try PromptService.shared.updatePrompt(
-                            name: updatedPrompt.promptName,
-                            text: updatedPrompt.promptText
-                        )
+                        try PromptService.shared.updatePrompt(updatedPrompt)
                         
                         DispatchQueue.main.async {
                             // Reload all prompts
@@ -466,8 +464,9 @@ class PromptsTabView: NSView, NSTableViewDataSource, NSTableViewDelegate {
         if row < prompts.count {
             let prompt = prompts[row]
             
-            if prompt.isDefault {
-                WindowManager.shared.displayPopupMessage(LocalizationService.shared.localizedString(for: "default_prompt_cannot_be_deleted"))
+            // Check if this is the last prompt
+            if prompts.count == 1 {
+                WindowManager.shared.displayPopupMessage(LocalizationService.shared.localizedString(for: "cannot_delete_last_prompt"))
                 return
             }
             
@@ -602,7 +601,7 @@ class PromptsTabView: NSView, NSTableViewDataSource, NSTableViewDelegate {
             Task {
                 do {
                     // Delete prompt from files
-                    try PromptService.shared.deletePrompt(name: prompt.promptName)
+                    try PromptService.shared.deletePrompt(id: prompt.id)
                     
                     DispatchQueue.main.async {
                         // Delete the prompt from the array
@@ -629,10 +628,7 @@ class PromptsTabView: NSView, NSTableViewDataSource, NSTableViewDelegate {
                 Task {
                     do {
                         // Create prompt in files
-                        try PromptService.shared.createPrompt(
-                            name: newPrompt.promptName,
-                            text: newPrompt.promptText
-                        )
+                        try PromptService.shared.createPrompt(newPrompt)
                         
                         DispatchQueue.main.async {
                             // Reload all prompts

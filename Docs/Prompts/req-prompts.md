@@ -1,78 +1,102 @@
-# Feature: Default Prompt for All Users
+# Feature: Prompt Management
 
-## User Story 1: Default Prompt Definition
+## User Story 1: Default Prompt for All Users
 As a Pen user
 I want a default prompt to be available for all users
 So that I have a starting point for AI interactions without needing to create my own prompt
 
 ### Acceptance Criteria
 
-Scenario: Default Prompt is loaded from default_prompt.md
+Scenario: Default Prompt is loaded from Resources/prompts folder
   Given the application is running
-  And default_prompt.md exists in the same folder as KeyChain
+  And Resources/prompts folder exists with default prompt JSON files
   When the application initializes
-  Then it should load the default prompt from default_prompt.md
-  And it should assign a special ID (e.g., DEFAULT) to the default prompt
-  And the special ID should be defined as a constant, not hard-coded
-  And the default prompt should be available for all users
-
-
-## User Story 2: Default Prompt Cannot Be Deleted
-As a Pen user
-I want the default prompt to always be available and not deletable
-So that I always have a fallback prompt option
-
-### Acceptance Criteria
-
-Scenario: Default Prompt is displayed at the top of the prompts list
-  Given the user is logged in
-  And the user navigates to Preferences - Prompts tab
-  When the prompts list loads
-  Then the default prompt should be displayed at the top of the list
-
-Scenario: Delete button for Default Prompt is disabled
-  Given the user is logged in
-  And the user navigates to Preferences - Prompts tab
-  When the prompts list loads
-  Then the delete button for the default prompt should be disabled
-  And mouse hover over the delete button should show a tooltip indicating "Default prompt cannot be deleted"
-  And the edit button for the default prompt should be enabled
-
-Scenario: Attempting to delete Default Prompt shows error
-  Given the user is logged in
-  And the user navigates to Preferences - Prompts tab
-  When the user attempts to delete the default prompt
-  Then it should display an error message: "Default prompt cannot be deleted"
-  And the default prompt should remain in the list
+  Then it should load all default prompts from Resources/prompts folder
+  And each prompt should have a unique ID
+  And one prompt should be marked as default
 
 Scenario: Default Prompt is created when registering a new user
   Given the user is not logged in
-  And the user is on the New User Registration screen
+  And the user is on the new User Registration screen
   When the user successfully completed the registration
-  Then the system should automatically create the default prompt for the user
-  And the prompt ID = Prompt.DEFAULT_PROMPT_ID
+  Then the system should automatically create the default prompts for the user
+  And the prompts should be stored in ~/Library/Application Support/Pen.Lite/prompts/
 
+## User Story 2: Last Prompt Protection
+As a Pen user
+I want to ensure at least one prompt always remains in the system
+So that I always have a prompt available for AI interactions
 
+### Acceptance Criteria
+
+Scenario: Last prompt cannot be deleted
+  Given the user is logged in
+  And the user navigates to Preferences - Prompts tab
+  And there is only one prompt in the list
+  When the prompts list loads
+  Then the delete button for the last prompt should be disabled
+  And mouse hover over the delete button should show a tooltip indicating "Cannot delete the last prompt"
+
+Scenario: Delete button is enabled when multiple prompts exist
+  Given the user is logged in
+  And the user navigates to Preferences - Prompts tab
+  And there are multiple prompts in the list
+  When the prompts list loads
+  Then the delete button for each prompt should be enabled
+
+Scenario: Delete button becomes disabled after deleting prompts until only one remains
+  Given the user is logged in
+  And the user navigates to Preferences - Prompts tab
+  And there are two prompts in the list
+  When the user deletes one prompt
+  Then the remaining prompt's delete button should become disabled
+  And a tooltip should appear on hover indicating "Cannot delete the last prompt"
+
+Scenario: Attempting to delete last prompt from Edit window shows error
+  Given the user is logged in
+  And the user navigates to Preferences - Prompts tab
+  And there is only one prompt in the list
+  And the user opens the Edit Prompt window for that prompt
+  When the user clicks the Delete button
+  Then an error message should appear indicating "Cannot delete the last prompt"
+  And the prompt should not be deleted
+  And the Edit Prompt window should remain open
+
+Scenario: Edit button is always enabled for any prompt
+  Given the user is logged in
+  And the user navigates to Preferences - Prompts tab
+  And there is at least one prompt in the list
+  When the prompts list loads
+  Then the edit button for each prompt should be enabled
 
 ## Technical Requirements
 
-1. **Default Prompt ID**: Use a constant for the special ID (e.g., DEFAULT) instead of hard-coding
-2. **File Location**: default_prompt.md should be placed in the same folder as KeyChain: pen/mac-app/Pen
-3. **UI Behavior**: Default prompt should always appear at the top of the prompts list with disabled delete button
-4. **Error Handling**: Attempts to delete the default prompt should be rejected with an appropriate error message
-5. **New User Onboarding**: Default prompt should be automatically created for new users
-6. **Fallback Mechanism**: If default_prompt.md is missing, a predefined default prompt should be created
+1. **Prompt Storage**: Prompts are stored as JSON files in ~/Library/Application Support/Pen.Lite/prompts/
+2. **Default Prompts**: Default prompts are loaded from Resources/prompts/ during initialization
+3. **UI Behavior**: 
+   - Delete button for the last prompt should be disabled
+   - Tooltip should indicate "Cannot delete the last prompt" on hover
+   - Edit button should always be enabled
+4. **Error Handling**: Attempts to delete the last prompt should be rejected with an appropriate error message
+5. **New User Onboarding**: Default prompts should be automatically created for new users
+6. **Fallback Mechanism**: If no prompts exist, a fallback prompt should be created
 
-## Default Prompt Structure
+## Prompt File Format (JSON)
 
-The default_prompt.md file should contain:
-- Prompt name: A clear, descriptive name for the default prompt
-- Prompt content: A well-crafted prompt that provides a good starting point for AI interactions
-
-Example structure:
+```json
+{
+  "id": "unique-prompt-id",
+  "promptName": "Prompt Name",
+  "promptText": "The actual prompt content...",
+  "createdDatetime": "2026-03-12T00:00:00Z",
+  "updatedDatetime": null,
+  "systemFlag": "PEN",
+  "isDefault": true
+}
 ```
-# Default Prompt Name
 
-## Prompt Content
-Your default prompt content goes here. This should be a versatile prompt that works well for general AI interactions.
-```
+## Out of Scope
+
+- Bulk delete operations
+- Prompt versioning
+- Prompt sharing between users

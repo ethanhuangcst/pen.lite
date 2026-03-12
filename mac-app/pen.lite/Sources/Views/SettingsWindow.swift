@@ -102,7 +102,7 @@ class SettingsWindow: BaseWindow {
         contentView.addSubview(titleLabel)
         
         // Add user_settings frame
-        let userSettingsFrame = NSView(frame: NSRect(x: 20, y: 20, width: windowWidth - 40, height: windowHeight - 120)) // Space from header
+        let userSettingsFrame = NSView(frame: NSRect(x: 20, y: 20, width: windowWidth - 40, height: windowHeight - 100)) // Space from header
         userSettingsFrame.wantsLayer = true
         userSettingsFrame.layer?.backgroundColor = ColorService.shared.backgroundColorCGColor
         
@@ -144,8 +144,4 @@ class SettingsWindow: BaseWindow {
         tabItem.view = tabContentView
         tabView.addTabViewItem(tabItem)
     }
-    
-
-    
-
 }

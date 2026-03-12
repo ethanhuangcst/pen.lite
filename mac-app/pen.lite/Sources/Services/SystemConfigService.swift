@@ -97,26 +97,19 @@ class SystemConfigService {
     }
     
     private func loadDefaultPromptFromFile() -> (name: String, text: String)? {
-        let defaultPromptPath = "\(FileManager.default.currentDirectoryPath)/default_prompt.md"
+        let defaultPromptPath = "\(FileManager.default.currentDirectoryPath)/default_prompt.json"
         
         guard FileManager.default.fileExists(atPath: defaultPromptPath) else {
-            print("[SystemConfigService] default_prompt.md not found at \(defaultPromptPath)")
+            print("[SystemConfigService] default_prompt.json not found at \(defaultPromptPath)")
             return nil
         }
         
         do {
-            let content = try String(contentsOfFile: defaultPromptPath, encoding: .utf8)
-            
-            var promptName = "Enhance English"
-            var promptText = content
-            
-            let lines = content.components(separatedBy: "\n")
-            if let firstLine = lines.first, firstLine.hasPrefix("# ") {
-                promptName = firstLine.replacingOccurrences(of: "# ", with: "").trimmingCharacters(in: .whitespacesAndNewlines)
-                promptText = lines.dropFirst().joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
-            }
-            
-            return (name: promptName, text: promptText)
+            let data = try Data(contentsOf: URL(fileURLWithPath: defaultPromptPath))
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .iso8601
+            let prompt = try decoder.decode(Prompt.self, from: data)
+            return (name: prompt.promptName, text: prompt.promptText)
         } catch {
             print("[SystemConfigService] Failed to load default prompt: \(error)")
             return nil
@@ -124,11 +117,24 @@ class SystemConfigService {
     }
     
     private func saveDefaultPromptToFile(name: String, text: String) {
-        let defaultPromptPath = "\(FileManager.default.currentDirectoryPath)/default_prompt.md"
-        let content = "# \(name)\n\n\(text)"
+        let defaultPromptPath = "\(FileManager.default.currentDirectoryPath)/default_prompt.json"
+        
+        let prompt = Prompt(
+            id: "default-prompt",
+            promptName: name,
+            promptText: text,
+            createdDatetime: Date(),
+            updatedDatetime: nil,
+            systemFlag: "PEN",
+            isDefault: true
+        )
         
         do {
-            try content.write(toFile: defaultPromptPath, atomically: true, encoding: .utf8)
+            let encoder = JSONEncoder()
+            encoder.outputFormatting = .prettyPrinted
+            encoder.dateEncodingStrategy = .iso8601
+            let data = try encoder.encode(prompt)
+            try data.write(to: URL(fileURLWithPath: defaultPromptPath), options: .atomic)
             print("[SystemConfigService] Default prompt saved to file")
         } catch {
             print("[SystemConfigService] Failed to save default prompt: \(error)")

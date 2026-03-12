@@ -180,7 +180,7 @@ And the table refreshes without the deleted row
 And a popup message displays "AI Connection deleted successfully!"
 And the terminal prints "$$$$$$$$$$$$$$$$$$$$ AI Configuration [Provider] deleted! $$$$$$$$$$$$$$$$$$$$"
 ```
-
+//DONE
 ### Acceptance Criteria ID: US-005-002
 Scenario: Delete AI connection - cancel
 ```gherkin
@@ -191,7 +191,7 @@ And the configuration is NOT deleted
 And the table remains unchanged
 And the edit window remains open (if it was open)
 ```
-
+//DONE
 ### Acceptance Criteria ID: US-005-003
 Scenario: Cannot delete last AI configuration
 ```gherkin
@@ -226,6 +226,7 @@ And the terminal prints "InitializationService: Default AI configurations create
 ```
 
 ### Acceptance Criteria ID: US-006-002
+//DONE
 Scenario: Skip default creation if file exists
 ```gherkin
 Given the app is launching

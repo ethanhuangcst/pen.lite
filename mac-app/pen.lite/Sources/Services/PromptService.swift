@@ -4,8 +4,14 @@ class PromptService {
     static let shared = PromptService()
     
     private let fileStorage = FileStorageService.shared
+    private let jsonEncoder = JSONEncoder()
+    private let jsonDecoder = JSONDecoder()
     
-    private init() {}
+    private init() {
+        jsonEncoder.outputFormatting = .prettyPrinted
+        jsonEncoder.dateEncodingStrategy = .iso8601
+        jsonDecoder.dateDecodingStrategy = .iso8601
+    }
     
     func getPrompts() throws -> [Prompt] {
         let directory = fileStorage.getPromptsDirectory()
@@ -14,46 +20,79 @@ class PromptService {
         var prompts: [Prompt] = []
         
         for file in files {
-            if file.pathExtension == "md" {
-                let promptName = file.deletingPathExtension().lastPathComponent
-                let content = try String(contentsOf: file, encoding: .utf8)
-                
-                let prompt = Prompt(
-                    id: UUID().uuidString,
-                    promptName: promptName,
-                    promptText: content,
-                    createdDatetime: Date(),
-                    updatedDatetime: Date(),
-                    isDefault: false
-                )
-                
-                prompts.append(prompt)
+            if file.pathExtension == "json" {
+                do {
+                    let data = try fileStorage.readFile(at: file)
+                    let prompt = try jsonDecoder.decode(Prompt.self, from: data)
+                    prompts.append(prompt)
+                } catch {
+                    print("[PromptService] Error loading prompt from \(file.lastPathComponent): \(error)")
+                }
             }
         }
         
-        return prompts
+        return prompts.sorted { $0.isDefault && !$1.isDefault }
     }
     
-    func createPrompt(name: String, text: String) throws {
-        let fileURL = fileStorage.getPromptFile(named: name)
-        try text.write(to: fileURL, atomically: true, encoding: .utf8)
+    func createPrompt(_ prompt: Prompt) throws {
+        let fileURL = fileStorage.getPromptFile(named: prompt.id)
+        let data = try jsonEncoder.encode(prompt)
+        try fileStorage.writeFile(data: data, to: fileURL)
     }
     
-    func updatePrompt(name: String, text: String) throws {
-        let fileURL = fileStorage.getPromptFile(named: name)
-        try text.write(to: fileURL, atomically: true, encoding: .utf8)
+    func updatePrompt(_ prompt: Prompt) throws {
+        let fileURL = fileStorage.getPromptFile(named: prompt.id)
+        let data = try jsonEncoder.encode(prompt)
+        try fileStorage.writeFile(data: data, to: fileURL)
     }
     
-    func deletePrompt(name: String) throws {
-        let fileURL = fileStorage.getPromptFile(named: name)
+    func deletePrompt(id: String) throws {
+        if !canDeletePrompt() {
+            throw PromptError.lastPromptCannotBeDeleted
+        }
+        let fileURL = fileStorage.getPromptFile(named: id)
         try fileStorage.deleteFile(at: fileURL)
     }
     
-    func getPrompt(named name: String) throws -> String? {
-        let fileURL = fileStorage.getPromptFile(named: name)
+    func canDeletePrompt() -> Bool {
+        do {
+            let prompts = try getPrompts()
+            return prompts.count > 1
+        } catch {
+            return false
+        }
+    }
+    
+    func getPrompt(id: String) throws -> Prompt? {
+        let fileURL = fileStorage.getPromptFile(named: id)
         if fileStorage.fileExists(at: fileURL) {
-            return try String(contentsOf: fileURL, encoding: .utf8)
+            let data = try fileStorage.readFile(at: fileURL)
+            return try jsonDecoder.decode(Prompt.self, from: data)
         }
         return nil
+    }
+    
+    func getDefaultPrompt() throws -> Prompt? {
+        let prompts = try getPrompts()
+        return prompts.first { $0.isDefault }
+    }
+    
+    func setDefaultPrompt(id: String) throws {
+        var prompts = try getPrompts()
+        
+        for i in 0..<prompts.count {
+            let prompt = prompts[i]
+            let updatedPrompt = Prompt(
+                id: prompt.id,
+                promptName: prompt.promptName,
+                promptText: prompt.promptText,
+                createdDatetime: prompt.createdDatetime,
+                updatedDatetime: Date(),
+                systemFlag: prompt.systemFlag,
+                isDefault: (prompt.id == id)
+            )
+            prompts[i] = updatedPrompt
+            try updatePrompt(updatedPrompt)
+        }
     }
 }

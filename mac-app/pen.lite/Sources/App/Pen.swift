@@ -17,11 +17,17 @@ class PenDelegate: NSObject, NSApplicationDelegate {
     private var newOrEditPromptWindow: NewOrEditPrompt?
     private var penWindowService: PenWindowService?
     private var windowManager: WindowManager = WindowManager.shared
+    private var forceReinitPrompts: Bool = false
 
     private let windowWidth: CGFloat = 378
     private let windowHeight: CGFloat = 388
     private let mouseOffset: CGFloat = 6
     private var isOnline: Bool = false
+    
+    init(forceReinitPrompts: Bool = false) {
+        self.forceReinitPrompts = forceReinitPrompts
+        super.init()
+    }
     
     func applicationDidFinishLaunching(_ notification: Notification) {
         print("SimpleAppDelegate: Application launched")
@@ -51,7 +57,7 @@ class PenDelegate: NSObject, NSApplicationDelegate {
     }
     
     @objc private func performInitialization() {
-        let initializationService = InitializationService(delegate: self)
+        let initializationService = InitializationService(delegate: self, forceReinitPrompts: forceReinitPrompts)
         initializationService.performInitialization()
     }
     

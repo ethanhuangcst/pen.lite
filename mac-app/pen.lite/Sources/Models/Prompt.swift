@@ -1,6 +1,23 @@
 import Foundation
 
-class Prompt {
+enum PromptError: Error, LocalizedError {
+    case lastPromptCannotBeDeleted
+    case promptNotFound(id: String)
+    case invalidPromptData
+    
+    var errorDescription: String? {
+        switch self {
+        case .lastPromptCannotBeDeleted:
+            return LocalizationService.shared.localizedString(for: "cannot_delete_last_prompt")
+        case .promptNotFound(let id):
+            return "Prompt not found with ID: \(id)"
+        case .invalidPromptData:
+            return "Invalid prompt data"
+        }
+    }
+}
+
+class Prompt: Codable {
     static let DEFAULT_PROMPT_ID = "DEFAULT"
     
     let id: String
@@ -11,6 +28,16 @@ class Prompt {
     let systemFlag: String
     let isDefault: Bool
     
+    enum CodingKeys: String, CodingKey {
+        case id
+        case promptName
+        case promptText
+        case createdDatetime
+        case updatedDatetime
+        case systemFlag
+        case isDefault
+    }
+    
     init(id: String, promptName: String, promptText: String, createdDatetime: Date, updatedDatetime: Date?, systemFlag: String = "PEN", isDefault: Bool = false) {
         self.id = id
         self.promptName = promptName
@@ -19,6 +46,28 @@ class Prompt {
         self.updatedDatetime = updatedDatetime
         self.systemFlag = systemFlag
         self.isDefault = isDefault
+    }
+    
+    required init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        promptName = try container.decode(String.self, forKey: .promptName)
+        promptText = try container.decode(String.self, forKey: .promptText)
+        createdDatetime = try container.decode(Date.self, forKey: .createdDatetime)
+        updatedDatetime = try container.decodeIfPresent(Date.self, forKey: .updatedDatetime)
+        systemFlag = try container.decodeIfPresent(String.self, forKey: .systemFlag) ?? "PEN"
+        isDefault = try container.decodeIfPresent(Bool.self, forKey: .isDefault) ?? false
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(promptName, forKey: .promptName)
+        try container.encode(promptText, forKey: .promptText)
+        try container.encode(createdDatetime, forKey: .createdDatetime)
+        try container.encodeIfPresent(updatedDatetime, forKey: .updatedDatetime)
+        try container.encode(systemFlag, forKey: .systemFlag)
+        try container.encode(isDefault, forKey: .isDefault)
     }
     
     static func createNewPrompt(promptName: String, promptText: String, isDefault: Bool = false) -> Prompt {
@@ -35,41 +84,6 @@ class Prompt {
     
     func getMarkdownText() -> String {
         return promptText
-    }
-    
-    static func loadDefaultPrompt() -> Prompt? {
-        let defaultPromptPath = "\(FileManager.default.currentDirectoryPath)/default_prompt.md"
-        
-        guard FileManager.default.fileExists(atPath: defaultPromptPath) else {
-            print("[Prompt] default_prompt.md not found at \(defaultPromptPath)")
-            return nil
-        }
-        
-        do {
-            let content = try String(contentsOfFile: defaultPromptPath, encoding: .utf8)
-            
-            var promptName = "Default Prompt"
-            var promptText = content
-            
-            let lines = content.components(separatedBy: "\n")
-            if let firstLine = lines.first, firstLine.hasPrefix("# ") {
-                promptName = firstLine.replacingOccurrences(of: "# ", with: "").trimmingCharacters(in: .whitespacesAndNewlines)
-                promptText = lines.dropFirst().joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
-            }
-            
-            return Prompt(
-                id: DEFAULT_PROMPT_ID,
-                promptName: promptName,
-                promptText: promptText,
-                createdDatetime: Date(),
-                updatedDatetime: nil,
-                systemFlag: "PEN",
-                isDefault: true
-            )
-        } catch {
-            print("[Prompt] Failed to load default prompt: \(error)")
-            return nil
-        }
     }
     
     static func createFallbackDefaultPrompt() -> Prompt {

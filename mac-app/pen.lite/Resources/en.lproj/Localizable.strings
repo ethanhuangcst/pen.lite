@@ -259,6 +259,7 @@
 "predefined_prompts_for" = "Predefined prompts for %@";
 "default_suffix" = "(Default)";
 "default_prompt_cannot_be_deleted" = "Default prompt cannot be deleted";
+"cannot_delete_last_prompt" = "Cannot delete the last prompt";
 
 /* History tab */
 "column_number" = "No.";

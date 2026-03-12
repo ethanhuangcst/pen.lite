@@ -50,7 +50,7 @@ class FileStorageService {
     }
     
     func getPromptFile(named name: String) -> URL {
-        return getPromptsDirectory().appendingPathComponent("\(name).md")
+        return getPromptsDirectory().appendingPathComponent("\(name).json")
     }
     
     // MARK: - File Operations

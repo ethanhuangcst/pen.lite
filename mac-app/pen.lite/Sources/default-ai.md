@@ -5,12 +5,12 @@
 ### base_url = https://dashscope.aliyuncs.com/compatible-mode/v1
 
 ## gpt
-### model name = gpt-5.2-all
-### api-key = sk-VdihYuyJpOjAC8Qv6kmkYVT56mRaG3nkkjHm0lTIxZ38ub3O
-### base-url = https://openaiss.com/v1
+### model name = gpt-5.2
+### api-key = sk-GiJZA48b5wDLSSkSRnsACsNJnaktv29AnXANYx3fw9QpY2Qn
+### base-url = https://oioiart.com/v1
 
 
 ## deepseek
-### model name = Deepseek 3.2
+### model name = deepseek-chat
 ### api-key = sk-366a2d261ad84510a612fddfd47ccc9f
 ### base_url = https://api.deepseek.com/v1

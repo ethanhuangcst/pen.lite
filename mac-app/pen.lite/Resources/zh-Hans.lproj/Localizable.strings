@@ -259,6 +259,7 @@
 "predefined_prompts_for" = "%@ 的预定义提示词";
 "default_suffix" = "（默认）";
 "default_prompt_cannot_be_deleted" = "默认提示词无法删除";
+"cannot_delete_last_prompt" = "无法删除最后一个提示词";
 
 /* History tab */
 "column_number" = "序号";

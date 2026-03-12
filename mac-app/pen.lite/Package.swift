@@ -18,7 +18,8 @@ let package = Package(
             sources: ["App", "Models", "Services", "Views"],
             resources: [
                 .process("../Resources/Assets"),
-                .process("../Resources/config"),
+                .copy("../Resources/config"),
+                .copy("../Resources/prompts"),
                 .process("../Resources/en.lproj"),
                 .process("../Resources/zh-Hans.lproj")
             ]

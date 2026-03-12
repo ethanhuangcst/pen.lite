@@ -297,8 +297,11 @@ class AIConfigurationTabView: NSView, NSTableViewDataSource, NSTableViewDelegate
                 // Delete from files
                 try AIConnectionService.shared.deleteConnection(id: configuration.id)
                 
-                // Remove from local array
+                // Remove from local array and close edit window on main thread
                 DispatchQueue.main.async {
+                    // Close edit window if open
+                    EditAIConnectionWindow.closeWindow()
+                    
                     self.configurations.remove(at: row)
                     self.configurationsTable.reloadData()
                     // Show popup message

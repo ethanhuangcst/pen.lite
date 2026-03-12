@@ -360,12 +360,22 @@ public class AIManager {
             return "\(value.prefix(4))...\(value.suffix(4))"
         }
         
+        // Build full endpoint URL
+        var endpointURL = baseURL
+        if !endpointURL.hasSuffix("/chat/completions") {
+            if endpointURL.hasSuffix("/") {
+                endpointURL = String(endpointURL.dropLast())
+            }
+            endpointURL += "/chat/completions"
+        }
+        
         print("[AIManager] Testing connection for \(providerName)")
         print("[AIManager] Base URL: \(baseURL)")
+        print("[AIManager] Endpoint URL: \(endpointURL)")
         print("[AIManager] Model: \(model)")
         
-        guard let url = URL(string: baseURL) else {
-            throw AIError.configurationError("Invalid URL: \(baseURL)")
+        guard let url = URL(string: endpointURL) else {
+            throw AIError.configurationError("Invalid URL: \(endpointURL)")
         }
         
         var request = URLRequest(url: url)
@@ -591,10 +601,19 @@ public class AIManager {
             return nil
         }
         
+        // Build full endpoint URL
+        var endpointURL = connection.apiUrl
+        if !endpointURL.hasSuffix("/chat/completions") {
+            if endpointURL.hasSuffix("/") {
+                endpointURL = String(endpointURL.dropLast())
+            }
+            endpointURL += "/chat/completions"
+        }
+        
         return AIModelProvider(
             id: Int(connection.id.hashValue),
             name: connection.apiProvider,
-            baseURLs: ["completion": connection.apiUrl],
+            baseURLs: ["completion": endpointURL],
             defaultModel: connection.model,
             requiresAuth: true,
             authHeader: "Authorization",
