@@ -10,14 +10,6 @@
 
 This code review identifies code quality issues, bad smells, and refactoring opportunities across the Pen.lite macOS application codebase. The review focuses on hardcoded values, code duplication, architectural concerns, and potential improvements.
 
-</toolcall_result>
-<toolcall_status>done</toolcall_result>
-<toolcall_result>
-<system-reminder>
-
-The user opened the file in the IDE. This may or may not be related to the current task.
-</system-reminder>
-
 ---
 
 ## Refactoring Progress
@@ -33,13 +25,13 @@ The user opened the file in the IDE. This may or may not be related to the curre
 
 **Commit**: `6541f4b` - refactor: code quality improvements - Phase 1
 
-</toolcall_result>
-<toolcall_status>done</toolcall_result>
-<toolcall_result>
-<system-reminder>
+### ✅ Completed (Phase 2 - 2026-03-12)
 
-The user opened the file in the IDE. This may or may not be related to the current task.
-</system-reminder>
+| # | Issue | Impact | Effort | Status |
+|---|-------|--------|--------|--------|
+| 1 | Create NSTextField factory extension | Medium | Low | ✅ Done |
+
+**Commit**: (pending)
 
 ---
 
@@ -84,7 +76,7 @@ The user opened the file in the IDE. This may or may not be related to the curre
 
 **Issue**: Repetitive pattern for creating non-editable text fields.
 
-**Status**: 🔜 Pending - Medium Priority
+**Status**: ✅ Fixed - Created NSTextField+Extensions.swift with factory methods
 
 ### 2.3 Window Height Declaration
 
@@ -177,7 +169,7 @@ The user opened the file in the IDE. This may or may not be related to the curre
 
 | Issue | Impact | Effort | Status |
 |-------|--------|--------|--------|
-| Create NSTextField factory extension | Medium | Low | 🔜 Pending |
+| Create NSTextField factory extension | Medium | Low | ✅ Done |
 | Extract view lookup helper methods | Medium | Medium | 🔜 Pending |
 | Create IdentifierConstants enum | Medium | Low | 🔜 Pending |
 | Replace debug prints with logging framework | Medium | Medium | 🔜 Pending |
@@ -219,10 +211,11 @@ The user opened the file in the IDE. This may or may not be related to the curre
 2. ~~Create `UILayoutConstants` struct~~ ✅ Done
 3. ~~Remove duplicate `windowHeight` declaration~~ ✅ Done
 4. ~~Fix unused variable warnings~~ ✅ Done
+5. ~~Create `NSTextField` factory extension~~ ✅ Done
 
 ### 🔜 Short-term Actions (Medium Priority)
 
-1. Create `NSTextField` factory extension
+1. ~~Create `NSTextField` factory extension~~ ✅ Done
 2. Create view lookup helper methods
 3. Create `IdentifierConstants` enum
 4. Implement proper logging
@@ -244,20 +237,22 @@ The user opened the file in the IDE. This may or may not be related to the curre
 | PenWindowService.swift | 1100+ | 15+ hardcoded values, 4 duplications | ✅ 5 fixed (colors + unused vars) |
 | LocalizationService.swift | 112 | Well-designed | No changes needed |
 | ColorService.swift | 55 | Missing colors | ✅ Added 4 new colors |
+| UILayoutConstants.swift | 75 | New file | ✅ Created |
+| NSTextField+Extensions.swift | 52 | New file | ✅ Created |
 
 ---
 
 ## 10. Conclusion
 
-**Phase 1 refactoring completed successfully.** All 4 high-priority items have been addressed:
+**Phase 1 & 2 refactoring completed successfully.** All 4 high-priority items and 1 medium-priority item have been addressed:
 
 1. ✅ Hardcoded colors extracted to ColorService
 2. ✅ UILayoutConstants created for centralized layout management
 3. ✅ Duplicate windowHeight declaration removed
 4. ✅ Unused variable warnings fixed
+5. ✅ NSTextField factory extension created
 
 **Remaining work** (Medium and Low priority) includes:
-- Create NSTextField factory extension
 - Extract view lookup helper methods
 - Create IdentifierConstants enum
 - Implement proper logging framework

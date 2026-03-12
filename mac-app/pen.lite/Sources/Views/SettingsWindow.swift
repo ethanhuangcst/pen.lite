@@ -93,19 +93,15 @@ class SettingsWindow: BaseWindow {
         addPenAILogo(to: contentView, windowHeight: windowHeight)
         
         // Add title
-        titleLabel = NSTextField(frame: NSRect(
-            x: UILayoutConstants.SettingsWindow.titleXOffset,
-            y: windowHeight - UILayoutConstants.headerHeight,
-            width: UILayoutConstants.SettingsWindow.titleWidth,
-            height: UILayoutConstants.SettingsWindow.titleHeight
-        ))
-        titleLabel.stringValue = LocalizationService.shared.localizedString(for: "pen_ai_preferences")
-        titleLabel.isBezeled = false
-        titleLabel.drawsBackground = false
-        titleLabel.isEditable = false
-        titleLabel.isSelectable = false
-        titleLabel.font = NSFont.boldSystemFont(ofSize: UILayoutConstants.titleFontSize)
-        contentView.addSubview(titleLabel)
+        titleLabel = NSTextField.createBoldLabel(
+            frame: NSRect(
+                x: UILayoutConstants.SettingsWindow.titleXOffset,
+                y: windowHeight - UILayoutConstants.headerHeight,
+                width: UILayoutConstants.SettingsWindow.titleWidth,
+                height: UILayoutConstants.SettingsWindow.titleHeight
+            ),
+            value: LocalizationService.shared.localizedString(for: "pen_ai_preferences")
+        )
         
         // Add language switch
         addLanguageSwitch(to: contentView, windowHeight: windowHeight)

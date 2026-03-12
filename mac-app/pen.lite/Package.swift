@@ -15,7 +15,7 @@ let package = Package(
             name: "Pen",
             dependencies: [],
             path: "Sources",
-            sources: ["App", "Models", "Services", "Views"],
+            sources: ["App", "Extensions", "Models", "Services", "Views"],
             resources: [
                 .process("../Resources/Assets"),
                 .copy("../Resources/config"),
