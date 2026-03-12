@@ -43,7 +43,7 @@ class SettingsWindow: BaseWindow {
         // Refresh all tab views
         refreshTabViews()
         
-        print("SettingsWindow: Language changed, UI updated")
+        Logger.debug("Language changed, UI updated")
     }
     
     private func updateTabLabels() {
@@ -84,7 +84,7 @@ class SettingsWindow: BaseWindow {
         
         // Debug: Print current directory
         let currentDirectory = FileManager.default.currentDirectoryPath
-        print("PreferencesWindow: Current directory: \(currentDirectory)")
+        Logger.debug("Current directory: \(currentDirectory)")
         
         // Add standard close button
         addStandardCloseButton(to: contentView, windowWidth: windowWidth, windowHeight: windowHeight)

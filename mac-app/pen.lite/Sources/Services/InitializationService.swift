@@ -20,28 +20,28 @@ class InitializationService {
     
     /// Performs the initialization process
     func performInitialization() {
-        print("InitializationService: Starting initialization process")
+        Logger.info("Starting initialization process")
         
         // Step 1: Initialize file storage
-        print("InitializationService: Step 1 - Initializing file storage")
+        Logger.debug("Step 1 - Initializing file storage")
         _ = FileStorageService.shared
-        print("InitializationService: File storage initialized successfully")
+        Logger.info("File storage initialized successfully")
         
         // Step 1.5: Initialize default configurations if needed
-        print("InitializationService: Step 1.5 - Checking default configurations")
+        Logger.debug("Step 1.5 - Checking default configurations")
         initializeDefaultConfigurations()
         
         // Step 2: Test internet connectivity (optional, app can work offline)
-        print("InitializationService: Step 2 - Testing internet connectivity")
+        Logger.debug("Step 2 - Testing internet connectivity")
         let isInternetAvailable = testInternetConnectivity()
-        print("InitializationService: Internet connectivity: \(isInternetAvailable ? "Available" : "Unavailable")")
+        Logger.info("Internet connectivity: \(isInternetAvailable ? "Available" : "Unavailable")")
         
         // Step 3: Load AI configurations from local files
-        print("InitializationService: Step 3 - Loading AI configurations")
+        Logger.debug("Step 3 - Loading AI configurations")
         loadAIConfigurationsFromFiles()
         
-        print("InitializationService: Initialization process completed successfully")
-        print("InitializationService: App is ready for use")
+        Logger.info("Initialization process completed successfully")
+        Logger.info("App is ready for use")
         
         // Set app to online mode if internet is available
         delegate?.setOnlineMode(isInternetAvailable)
@@ -64,7 +64,7 @@ class InitializationService {
         let aiConnectionsFile = fileStorage.getAIConnectionsFile()
         
         if !fileStorage.fileExists(at: aiConnectionsFile) {
-            print("InitializationService: Creating default AI configurations file")
+            Logger.debug("Creating default AI configurations file")
             
             // Load default AI connections from JSON file
             var defaultConnections: [AIConnectionModel] = []
@@ -77,24 +77,24 @@ class InitializationService {
                     let decoder = JSONDecoder()
                     let config = try decoder.decode(DefaultAIConfigurations.self, from: data)
                     defaultConnections = config.connections
-                    print("InitializationService: Loaded \(defaultConnections.count) default configurations from JSON")
+                    Logger.info("Loaded \(defaultConnections.count) default configurations from JSON")
                 } catch {
-                    print("InitializationService: Error loading default configurations from JSON: \(error)")
+                    Logger.error("Error loading default configurations from JSON: \(error)")
                     // Fallback to empty array
                     defaultConnections = []
                 }
             } else {
-                print("InitializationService: Warning - default_ai_configurations.json not found at \(configPath)")
+                Logger.warning("default_ai_configurations.json not found at \(configPath)")
             }
             
             do {
                 try AIConnectionService.shared.saveConnections(defaultConnections)
-                print("InitializationService: Default AI configurations created successfully")
+                Logger.info("Default AI configurations created successfully")
             } catch {
-                print("InitializationService: Error creating default AI configurations: \(error)")
+                Logger.error("Error creating default AI configurations: \(error)")
             }
         } else {
-            print("InitializationService: AI configurations file already exists, skipping default creation")
+            Logger.debug("AI configurations file already exists, skipping default creation")
         }
     }
     
@@ -110,12 +110,12 @@ class InitializationService {
             
             if jsonFiles.isEmpty || force {
                 if force && !jsonFiles.isEmpty {
-                    print("InitializationService: Force reinitializing prompts (deleting existing)")
+                    Logger.debug("Force reinitializing prompts (deleting existing)")
                     for file in jsonFiles {
                         try fileStorage.deleteFile(at: file)
                     }
                 }
-                print("InitializationService: Creating default prompts from bundle")
+                Logger.debug("Creating default prompts from bundle")
                 
                 // Load default prompts from Resources/prompts directory
                 var loadedCount = 0
@@ -139,16 +139,16 @@ class InitializationService {
                             let prompt = try decoder.decode(Prompt.self, from: data)
                             try PromptService.shared.createPrompt(prompt)
                             loadedCount += 1
-                            print("InitializationService: Loaded default prompt: \(prompt.promptName)")
+                            Logger.info("Loaded default prompt: \(prompt.promptName)")
                         } catch {
-                            print("InitializationService: Error loading prompt from \(promptFileName).json: \(error)")
+                            Logger.error("Error loading prompt from \(promptFileName).json: \(error)")
                         }
                     } else {
-                        print("InitializationService: Warning - \(promptFileName).json not found at \(promptPath)")
+                        Logger.warning("\(promptFileName).json not found at \(promptPath)")
                     }
                 }
                 
-                print("InitializationService: Loaded \(loadedCount) default prompts from bundle")
+                Logger.info("Loaded \(loadedCount) default prompts from bundle")
                 
                 if loadedCount == 0 {
                     
@@ -166,35 +166,34 @@ class InitializationService {
                     try PromptService.shared.createPrompt(fallbackPrompt)
                 }
                 
-                print("InitializationService: Default prompts created successfully")
+                Logger.info("Default prompts created successfully")
             } else {
-                print("InitializationService: Prompts directory already contains files, skipping default creation")
+                Logger.debug("Prompts directory already contains files, skipping default creation")
             }
         } catch {
-            print("InitializationService: Error checking/creating default prompts: \(error)")
+            Logger.error("Error checking/creating default prompts: \(error)")
         }
     }
     
     /// Tests internet connectivity
     private func testInternetConnectivity() -> Bool {
-        print("InitializationService: Testing internet connectivity...")
+        Logger.debug("Testing internet connectivity...")
         
-        // Use the actual InternetConnectivityServiceTest
+        // Use this actual InternetConnectivityServiceTest
         let connectivityService = InternetConnectivityServiceTest()
         let isInternetAvailable = connectivityService.isInternetAvailable()
         
         if isInternetAvailable {
-            print("InitializationService: Internet connection is available")
-            print("********************************** PenAI Initialization: Internet Connectivity: AVAILABLE **********************************")
+            Logger.info("Internet connection is available")
+            Logger.info("********************************** PenAI Initialization: Internet Connectivity: AVAILABLE **********************************")
             return true
         } else {
-            print("InitializationService: Internet connection is unavailable")
-            print("********************************** PenAI Initialization: Internet Connectivity: UNAVAILABLE **********************************")
+            Logger.warning("Internet connection is unavailable")
+            Logger.info("********************************** PenAI Initialization: Internet Connectivity: UNAVAILABLE **********************************")
             return false
         }
     }
     
-
     
 
     
@@ -202,14 +201,14 @@ class InitializationService {
     
     /// Loads AI configurations from local files
     private func loadAIConfigurationsFromFiles() {
-        print("InitializationService: Loading AI configurations from files")
+        Logger.debug("Loading AI configurations from files")
         
         do {
             let connections = try AIConnectionService.shared.getConnections()
-            print("InitializationService: Loaded \(connections.count) AI configurations from files")
+            Logger.info("Loaded \(connections.count) AI configurations from files")
             
             if connections.isEmpty {
-                print("InitializationService: No AI configurations found in files")
+                Logger.warning("No AI configurations found in files")
                 // Show message about setting up AI configurations
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                     WindowManager.shared.displayPopupMessage("No AI Configuration set up yet.\nGo to Settings → AI Configuration to set up.")

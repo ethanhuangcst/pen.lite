@@ -42,6 +42,14 @@ This code review identifies code quality issues, bad smells, and refactoring opp
 |---|-------|--------|--------|--------|
 | 1 | Create NSView view lookup helper methods | Medium | Medium | ✅ Done |
 
+**Commit**: `5e7fc6a` - refactor: code quality improvements - Phase 3
+
+### ✅ Completed (Phase 4 - 2026-03-12)
+
+| # | Issue | Impact | Effort | Status |
+|---|-------|--------|--------|--------|
+| 1 | Replace debug prints with logging framework | Medium | Medium | ✅ Done |
+
 **Commit**: (pending)
 
 ---
@@ -114,6 +122,12 @@ This code review identifies code quality issues, bad smells, and refactoring opp
 
 **Status**: ✅ Fixed - Created NSView+Extensions.swift with helper methods
 
+### 2.7 Debug Print Statements
+
+**Issue**: Scattered print statements throughout the codebase.
+
+**Status**: ✅ Fixed - Created Logger.swift with proper logging framework
+
 ---
 
 ## 3. Architectural Concerns
@@ -156,7 +170,7 @@ This code review identifies code quality issues, bad smells, and refactoring opp
 
 **Issue**: Debug print statements left in production code.
 
-**Status**: 🔜 Pending - Medium Priority
+**Status**: ✅ Fixed - Replaced with Logger framework
 
 ### 4.4 Unused Variables
 
@@ -180,6 +194,10 @@ This code review identifies code quality issues, bad smells, and refactoring opp
 
 **Status**: ✅ Fixed - Created ViewIdentifier.swift
 
+### 5.4 Logging Framework
+
+**Status**: ✅ Fixed - Created Logger.swift
+
 ---
 
 ## 6. Refactoring Opportunities
@@ -200,7 +218,7 @@ This code review identifies code quality issues, bad smells, and refactoring opp
 | Create NSTextField factory extension | Medium | Low | ✅ Done |
 | Create ViewIdentifier enum | Medium | Low | ✅ Done |
 | Create NSView view lookup helpers | Medium | Medium | ✅ Done |
-| Replace debug prints with logging framework | Medium | Medium | 🔜 Pending |
+| Replace debug prints with logging framework | Medium | Medium | ✅ Done |
 
 ### 6.3 Low Priority (Architectural)
 
@@ -244,13 +262,7 @@ This code review identifies code quality issues, bad smells, and refactoring opp
 7. ~~Fix missing title label in SettingsWindow~~ ✅ Done
 8. ~~Add missing localization strings~~ ✅ Done
 9. ~~Create `NSView` view lookup helpers~~ ✅ Done
-
-### 🔜 Short-term Actions (Medium Priority)
-
-1. ~~Create `NSTextField` factory extension~~ ✅ Done
-2. ~~Create `ViewIdentifier` enum~~ ✅ Done
-3. ~~Create view lookup helper methods~~ ✅ Done
-4. Implement proper logging
+10. ~~Replace debug prints with logging framework~~ ✅ Done
 
 ### 🔜 Long-term Actions (Low Priority - Architectural)
 
@@ -264,15 +276,17 @@ This code review identifies code quality issues, bad smells, and refactoring opp
 
 | File | Lines | Issues Found | Fixed |
 |------|-------|--------------|-------|
-| SettingsWindow.swift | 194 | 7 hardcoded values, 1 duplicate | ✅ All fixed |
+| SettingsWindow.swift | 194 | 7 hardcoded values, 1 duplicate, 2 prints | ✅ All fixed |
 | BaseWindow.swift | 651 | 10 hardcoded values | ✅ 1 fixed (popup color) |
-| PenWindowService.swift | 1100+ | 15+ hardcoded values, 4 duplications | ✅ Colors + identifiers + helpers |
+| PenWindowService.swift | 1100+ | 15+ hardcoded values, 4 duplications, 15 prints | ✅ All fixed |
+| InitializationService.swift | 220 | 20+ print statements | ✅ All fixed |
 | LocalizationService.swift | 112 | Well-designed | No changes needed |
 | ColorService.swift | 55 | Missing colors | ✅ Added 4 new colors |
 | UILayoutConstants.swift | 75 | New file | ✅ Created |
 | NSTextField+Extensions.swift | 52 | New file | ✅ Created |
 | ViewIdentifier.swift | 20 | New file | ✅ Created |
 | NSView+Extensions.swift | 40 | New file | ✅ Created |
+| Logger.swift | 60 | New file | ✅ Created |
 | en.lproj/Localizable.strings | 155 | Missing strings | ✅ Added 8 strings |
 | zh-Hans.lproj/Localizable.strings | 155 | Missing strings | ✅ Added 8 strings |
 
@@ -280,7 +294,7 @@ This code review identifies code quality issues, bad smells, and refactoring opp
 
 ## 10. Conclusion
 
-**Phase 1, 2 & 3 refactoring completed successfully.** All 4 high-priority items and 5 medium-priority items have been addressed:
+**Phase 1, 2, 3 & 4 refactoring completed successfully.** All 4 high-priority items and all 4 medium-priority items have been addressed:
 
 1. ✅ Hardcoded colors extracted to ColorService
 2. ✅ UILayoutConstants created for centralized layout management
@@ -291,9 +305,11 @@ This code review identifies code quality issues, bad smells, and refactoring opp
 7. ✅ Missing title label fixed in SettingsWindow
 8. ✅ Missing localization strings added
 9. ✅ NSView view lookup helpers created
+10. ✅ Debug prints replaced with logging framework
 
-**Remaining work** (Medium and Low priority) includes:
-- Replace debug prints with logging framework
-- Architectural refactoring of PenWindowService
+**Remaining work** (Low priority - Architectural) includes:
+- Split PenWindowService into smaller services
+- Implement dependency injection
+- Add protocol abstractions for services
 
 These items are tracked for future phases.

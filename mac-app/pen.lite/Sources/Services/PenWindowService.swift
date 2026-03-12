@@ -25,7 +25,7 @@ class PenWindowService {
     
     init() {
         loadSavedInputMode()
-        print("[PenWindowService] Initializer called")
+        Logger.debug("Initializer called")
     }
     
     deinit {
@@ -96,14 +96,14 @@ class PenWindowService {
             }
         }
         
-        print("[PenWindowService] Clipboard monitoring started")
+        Logger.info("Clipboard monitoring started")
     }
     
     private func stopClipboardMonitoring() {
         // Cancel the polling task
         clipboardPollingTask?.cancel()
         clipboardPollingTask = nil
-        print("[PenWindowService] Clipboard monitoring stopped")
+        Logger.info("Clipboard monitoring stopped")
     }
     
     func closeWindow() {
@@ -122,7 +122,7 @@ class PenWindowService {
     
     func initiatePen() async {
         guard window != nil else {
-            print("[PenWindowService] Window not initialized")
+            Logger.warning("Window not initialized")
             return
         }
         
@@ -186,7 +186,7 @@ class PenWindowService {
             }
         } catch {
             // Handle AI configuration load failure
-            print("[PenWindowService] Failed to load AI configurations: \(error)")
+            Logger.error("Failed to load AI configurations: \(error)")
             await handleAIConfigurationFailure()
         }
     }
@@ -196,7 +196,7 @@ class PenWindowService {
             let prompts = try PromptService.shared.getPrompts()
             await populatePromptsDropdown(prompts: prompts)
         } catch {
-            print("[PenWindowService] Failed to load prompts: \(error)")
+            Logger.error("Failed to load prompts: \(error)")
             await handleAIConfigurationFailure()
         }
     }
@@ -954,7 +954,7 @@ class PenWindowService {
             }
         } catch {
             // Scenario: Handle clipboard read failure
-            print("[PenWindowService] Error reading clipboard: \(error)")
+            Logger.error("Error reading clipboard: \(error)")
             displayClipboardErrorMessage()
             currentClipboardContent = nil
             currentOriginalTextForEnhancement = nil
@@ -1106,7 +1106,7 @@ class PenWindowService {
         guard window != nil else { return }
         
         guard !isEnhancing else {
-            print("[PenWindowService] Already enhancing, skipping duplicate request")
+            Logger.warning("Already enhancing, skipping duplicate request")
             return
         }
         
@@ -1115,19 +1115,19 @@ class PenWindowService {
         
         // Get selected prompt
         guard let selectedPrompt = await getSelectedPrompt() else {
-            print("[PenWindowService] No prompt selected")
+            Logger.warning("No prompt selected")
             return
         }
         
         // Get selected provider
         guard let selectedProvider = await getSelectedProvider() else {
-            print("[PenWindowService] No provider selected")
+            Logger.warning("No provider selected")
             return
         }
         
         // Get original text
         guard let originalText = getOriginalText() else {
-            print("[PenWindowService] No original text")
+            Logger.warning("No original text")
             return
         }
         
@@ -1146,7 +1146,7 @@ class PenWindowService {
             let selectedConnection = connections.first { $0.apiProvider == selectedProvider.name }
             
             guard let connection = selectedConnection else {
-                print("[PenWindowService] No connection found for selected provider")
+                Logger.error("No connection found for selected provider")
                 await MainActor.run {
                     hideLoadingIndicator()
                 }
@@ -1169,7 +1169,7 @@ class PenWindowService {
                 hideLoadingIndicator()
             }
         } catch {
-            print("[PenWindowService] Failed to enhance text: \(error)")
+            Logger.error("Failed to enhance text: \(error)")
             await MainActor.run {
                 updateEnhancedText(LocalizationService.shared.localizedString(for: "pen_enhance_error"))
                 hideLoadingIndicator()
@@ -1207,7 +1207,7 @@ class PenWindowService {
             let prompts = try PromptService.shared.getPrompts()
             return prompts.first { $0.promptName == selectedTitle }
         } catch {
-            print("[PenWindowService] Failed to get prompts: \(error)")
+            Logger.error("Failed to get prompts: \(error)")
             return nil
         }
     }
@@ -1248,7 +1248,7 @@ class PenWindowService {
             }
             return nil
         } catch {
-            print("[PenWindowService] Failed to get providers: \(error)")
+            Logger.error("Failed to get providers: \(error)")
             return nil
         }
     }
