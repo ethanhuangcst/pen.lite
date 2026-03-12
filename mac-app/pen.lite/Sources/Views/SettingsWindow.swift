@@ -5,6 +5,8 @@ class SettingsWindow: BaseWindow {
     private let windowWidth: CGFloat = 600
     
     private var titleLabel: NSTextField!
+    private var languageLabel: NSTextField!
+    private var languageDropdown: NSPopUpButton!
     private var tabView: NSTabView!
     
     // MARK: - Initialization
@@ -32,6 +34,9 @@ class SettingsWindow: BaseWindow {
         
         // Update title
         titleLabel?.stringValue = LocalizationService.shared.localizedString(for: "pen_ai_preferences")
+        
+        // Update language label
+        languageLabel?.stringValue = LocalizationService.shared.localizedString(for: "language_label")
         
         // Update tab labels
         updateTabLabels()
@@ -101,6 +106,9 @@ class SettingsWindow: BaseWindow {
         titleLabel.font = NSFont.boldSystemFont(ofSize: 18)
         contentView.addSubview(titleLabel)
         
+        // Add language switch
+        addLanguageSwitch(to: contentView, windowHeight: windowHeight)
+        
         // Add user_settings frame
         let userSettingsFrame = NSView(frame: NSRect(x: 20, y: 20, width: windowWidth - 40, height: windowHeight - 100)) // Space from header
         userSettingsFrame.wantsLayer = true
@@ -143,5 +151,44 @@ class SettingsWindow: BaseWindow {
         
         tabItem.view = tabContentView
         tabView.addTabViewItem(tabItem)
+    }
+    
+    private func addLanguageSwitch(to contentView: NSView, windowHeight: CGFloat) {
+        languageLabel = NSTextField(frame: NSRect(x: 380, y: 473, width: 100, height: 20))
+        languageLabel.stringValue = LocalizationService.shared.localizedString(for: "language_label")
+        languageLabel.isBezeled = false
+        languageLabel.drawsBackground = false
+        languageLabel.isEditable = false
+        languageLabel.isSelectable = false
+        languageLabel.font = NSFont.systemFont(ofSize: NSFont.systemFontSize)
+        languageLabel.alignment = .left
+        contentView.addSubview(languageLabel)
+        
+        languageDropdown = NSPopUpButton(frame: NSRect(x: 460, y: 473, width: 100, height: 20))
+        languageDropdown.bezelStyle = .rounded
+        languageDropdown.font = NSFont.systemFont(ofSize: NSFont.systemFontSize)
+        
+        for language in AppLanguage.allCases {
+            languageDropdown.addItem(withTitle: language.displayName)
+        }
+        
+        let currentLanguage = LocalizationService.shared.language
+        if let index = AppLanguage.allCases.firstIndex(of: currentLanguage) {
+            languageDropdown.selectItem(at: index)
+        }
+        
+        languageDropdown.target = self
+        languageDropdown.action = #selector(languageDropdownChanged(_:))
+        
+        contentView.addSubview(languageDropdown)
+    }
+    
+    @objc private func languageDropdownChanged(_ sender: NSPopUpButton) {
+        guard let selectedTitle = sender.titleOfSelectedItem,
+              let selectedLanguage = AppLanguage.allCases.first(where: { $0.displayName == selectedTitle }) else {
+            return
+        }
+        
+        LocalizationService.shared.setLanguage(selectedLanguage)
     }
 }

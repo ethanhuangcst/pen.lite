@@ -1,72 +1,29 @@
-/* Greeting message when user is logged in */
-"hello_user" = "Hello, %@, I'm Pen, your AI writing assistent.";
-
 /* Greeting message when user is not logged in */
-"hello_guest" = "Hello, I'm Pen, your AI writing assistent. Please login to continue";
-"internet_failure" = "You don't seem to have an internet connection, please check your network settings";
-"database_failure" = "Oops, something went wrong with our service, please try again later...";
-"file_too_large" = "Please choose an image file smaller than 1MB.";
-"test_popup_message" = "Test Pop up message";
+"hello_guest" = "Hello, I'm Pen Lite, your AI writing assistent. Please login to continue";
 
 /* Menu bar tooltips */
-"pen_ai" = "Pen AI";
-"pen_ai_offline" = "Pen AI (Offline)";
+"pen_ai" = "Pen Lite";
+"pen_ai_offline" = "Pen Lite (Offline)";
 "click_to_reload" = "Click to reload";
 
 /* Settings window */
-"pen_ai_preferences" = "Pen - Settings";
+"pen_ai_preferences" = "Pen Lite - Settings";
+"language_label" = "Language:";
 "close" = "Close";
-"general" = "General";
-"account" = "Account";
 "ai_connections" = "AI Connections";
 "prompts" = "Prompts";
-"history" = "History";
-"leave_blank_current_image" = "Leave blank to keep current image";
-"maximum_file_size" = "Maximum file size: 1M";
-"name" = "Name:";
-"email" = "Email:";
-"new_password" = "New Password:";
-"leave_blank_current_password" = "Leave blank to keep current password";
-"confirm_password" = "Confirm Password:";
-"save_changes" = "Save Changes";
-"logout" = "Logout";
-"select_profile_image" = "Select Profile Image";
-"crop_profile_image" = "Crop Profile Image";
-"crop_image_instructions" = "Adjust the image and click Crop to set your profile picture";
-"crop" = "Crop";
 
 /* Login window */
-"register_new_account" = "Register New Account";
-"register" = "Register";
-"forgot_password" = "Forgot Password?";
-"forgot_password_window_title" = "Forgot Password";
-"send_reset_link_button" = "Send Reset Link";
-"send_button" = "Send";
-"sending_button" = "Sending...";
-"reset_link_sent_success" = "Password reset link sent successfully! Check your email.";
-"reset_password_email_sent" = "Reset password email sent.";
-"reset_link_sent_failure" = "Failed to send reset link. Please check your email and try again.";
-"failed_to_send_reset_password_email" = "Failed to send reset password email, please try again later.";
-"invalid_email_error" = "Please enter a valid email address.";
-"success_title" = "Success";
-"error_title" = "Error";
-"ok_button" = "OK";
+"pen_ai_login" = "Pen Lite - Login";
+"email_label" = "Email:";
+"enter_email_placeholder" = "Enter your email";
+"password_label" = "Password:";
+"enter_password_placeholder" = "Enter your password";
+"remember_me" = "Remember Me";
+"login_button" = "Login";
 "cancel_button" = "Cancel";
 
-/* General tab */
-"keyboard_shortcut_title" = "Keyboard Shortcut To Toggle Pen";
-"toggle_pen_shortcut_title" = "Toggle Pen with shortcut:";
-"record_shortcut_instruction" = "Click to record your own shortcut:";
-"press_key_combination" = "Press a key combination...";
-"press_key_combination_instruction" = "Press the key combination you want to use...";
-"record_shortcut_prompt" = "Click the text field to record a new shortcut key combination";
-"accessibility_permission_note" = "Note: You may need to grant accessibility permissions for global keyboard monitoring";
-"accessibility_permission_required" = "Please grant accessibility permissions in System Preferences";
-"shortcut_recorded_successfully" = "Shortcut key recorded successfully";
-"shortcut_conflict" = "Shortcut Conflict: %@ conflicts with an existing system or application shortcut. Please choose a different combination.";
-"custom_shortcut_set" = "Custom shortcut set: %@";
-"history_settings_title" = "Maximum content history:";
-"content_history_to_save" = "Content history to save:";
+/* Language settings */
 "language_title" = "Select language";
 "select_language" = "Select language:";
 "english_language" = "English";
@@ -77,7 +34,7 @@
 "general_settings_saved" = "General settings saved";
 
 /* AI Connections tab */
-"ai_connections_for" = "AI Connections for %@";
+"ai_connections_for" = "AI Connections;
 "ai_model_provider" = "AI Model Provider";
 "api_key" = "API Key";
 "new_button" = "New";
@@ -87,7 +44,7 @@
 "provider" = "Provider";
 "delete_column" = "Delete";
 "test_column" = "Save";
-"first_connection_default" = "The first connection will be used as default.";
+"first_connection_default" = "You need at least one AI configuration.";
 "connections_saved_successfully" = "Connections saved successfully";
 "delete_ai_connection" = "Delete AI Connection";
 "delete_confirmation" = "Are you sure you want to delete the %@ connection?";
@@ -103,7 +60,6 @@
 "provider_name" = "Provider Name";
 "base_url" = "Base URL";
 "model" = "Model";
-"save_button" = "Save";
 "test_and_save_button" = "Test & Save";
 "provider_name_required" = "Provider name is required";
 "base_url_required" = "Base URL is required";
@@ -121,7 +77,6 @@
 "ai_connection_deleted_successfully" = "AI Connection deleted successfully!";
 "failed_to_delete_ai_configuration" = "Failed to delete AI Configuration!";
 "duplicated_api_key_or_provider" = "Duplicated API Key or Provider, AI Connection configuration not saved.\nPlease check the API Key and Provider.";
-"testing_provider" = "Testing %@ before saving the configuration...";
 "ai_connection_test_passed_new" = "AI Connection test passed!\nNew AI Connection %@ created for %@";
 "ai_connection_test_passed_updated" = "AI Connection test passed!\nAI Connection configuration %@ updated for %@";
 "ai_connection_test_passed_new_no_user" = "AI Connection test passed!\nNew AI Connection %@ created.";
@@ -137,10 +92,7 @@
 "close_button_accessibility" = "Close";
 
 /* Main window */
-"pen_ai_title" = "Pen AI";
-"hello_world" = "Hello World!";
 "no_ai_configuration" = "No AI Configuration set up yet.\nGo to Settings → AI Configuration to set up.";
-"no_user" = "No User";
 
 /* Menu items */
 "preferences" = "Settings";
@@ -153,28 +105,15 @@
 "pen_menu_title_offline" = "Pen (Offline)";
 
 /* Footer text */
-"pen_footer_text" = "Pen - AI writing assistent";
-"pen_footer_shortcut" = " Pen ";
 "pen_footer_label" = " Pen ";
-"pen_footer_instruction" = "Hotkey: %@";
+"pen_footer_appname" = "Pen Lite";
 "pen_footer_auto" = "Auto copy clipboard:";
-"paste_from_clipboard" = "Paste from clipboard, or press %@";
 "paste_from_clipboard_simple" = "Paste from clipboard";
 "pen_manual_input_hint" = "Command + enter to enhance...";
 
-/* Login window */
-"pen_ai_login" = "Pen - Login";
-"email_label" = "Email:";
-"enter_email_placeholder" = "Enter your email";
-"password_label" = "Password:";
-"enter_password_placeholder" = "Enter your password";
-"remember_me" = "Remember Me";
-"login_button" = "Login";
-"invalid_credentials" = "Invalid email or password";
-
 /* Prompts tab */
 "prompts_title" = "Prompts";
-"first_prompt_default" = "First prompt will be the default prompt";
+"first_prompt_default" = "The last prompt cannot be deleted.";
 "prompt_name_column" = "Name";
 "prompt_text_column" = "Prompt - hover over to view the full content";
 "edit_button" = "Edit";
@@ -223,53 +162,10 @@
 "pen_enhance_error" = "Failed to enhance text. Please try again later.";
 "pen_refining_content" = "Refining ...";
 
-/* Registration success message */
-"registration_success" = "New user registration suceeded!\nPlease login to continue.";
-
-/* Password reset email */
-"password_reset_email_subject" = "Reset your Pen AI password";
-"password_reset_email_greeting" = "Hello,";
-"password_reset_email_body" = "You requested a password reset for your Pen AI account.";
-"password_reset_email_temporary_password" = "Your temporary password is: %@";
-"password_reset_email_instruction" = "Please use this temporary password to log in to your Pen AI account. It is highly recommended to change your password after logging in.";
-"password_reset_email_footer" = "If you didn't request this, you can safely ignore this email.";
-"password_reset_email_signature" = "Best regards,\nThe Pen AI Team";
-
-/* Password reset errors */
-"user_not_found_error" = "User not found. Please check your email address.";
-"password_update_failed_error" = "Failed to update password. Please try again later.";
-"email_send_failed_error" = "Failed to send email. Please try again later.";
-
-/* Account tab */
-"update_button" = "Update";
-"maximum_file_size_ratio" = "Maximum file size: 1M, recommended 1:1 ratio";
-"passwords_dont_match" = "Passwords don't match";
-"leave_password_empty_current" = "Leave password fields empty to keep your current password";
-"failed_to_load_image" = "Failed to load image";
-"passwords_dont_match_retry" = "Passwords don't match. Please try again.";
-"changes_saved_successfully" = "Changes saved successfully!";
-"failed_to_reload_user_data" = "Failed to reload user data. Please try again.";
-"failed_to_save_changes" = "Failed to save changes. Please try again.";
-
-/* Registration */
-"please_fill_in_all_fields" = "Please fill in all fields";
-"registration_failed_email_exists" = "Registration failed. Email may already be in use.";
-
 /* Prompts tab */
-"predefined_prompts_for" = "Predefined prompts for %@";
+"predefined_prompts_for" = "Predefined prompts;
 "default_suffix" = "(Default)";
-"default_prompt_cannot_be_deleted" = "Default prompt cannot be deleted";
 "cannot_delete_last_prompt" = "Cannot delete the last prompt";
-
-/* History tab */
-"column_number" = "No.";
-"column_content_enhanced" = "Content enhanced:";
-"column_enhanced_at" = "Enhanced at:";
-"column_copy" = "copy";
-"no_history_available" = "No history available. Start enhancing content to build your history.";
-"loading_history" = "Loading history...";
-"click_to_copy" = "Click to copy";
-"max_history_record_number" = "Max history record number: %d";
 
 /* Main Menu */
 "menu_quit" = "Quit";
@@ -291,3 +187,6 @@
 "light_mode" = "Light";
 "dark_mode" = "Dark";
 "auto_switch_appearance_description" = "Automatically switch between light and dark mode based on system settings";
+
+/* Test */
+"test_popup_message" = "Test Pop up message";

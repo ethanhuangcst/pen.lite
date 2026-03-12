@@ -317,12 +317,7 @@ class PenWindowService {
         
         // Add instruction label
         let instructionLabel = NSTextField(frame: NSRect(x: 44, y: -7, width: 180, height: footerHeight))
-        let defaults = UserDefaults.standard
-        let shortcutKeyDefaultsKey = "pen.shortcutKey"
-        let defaultShortcut = "Command+Option+P"
-        let savedShortcut = defaults.string(forKey: shortcutKeyDefaultsKey) ?? defaultShortcut
-        let displayShortcut = LocalizationService.shared.formatShortcutForDisplay(savedShortcut)
-        instructionLabel.stringValue = LocalizationService.shared.localizedString(for: "pen_footer_instruction", withFormat: displayShortcut)
+        instructionLabel.stringValue = LocalizationService.shared.localizedString(for: "pen_footer_appname")
         instructionLabel.isBezeled = false
         instructionLabel.drawsBackground = false
         instructionLabel.isEditable = false

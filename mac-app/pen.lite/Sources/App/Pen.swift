@@ -1,7 +1,4 @@
 import Cocoa
-import Carbon
-
-// Import MainMenu for shortcut support
 import AppKit
 
 extension NSFont {
@@ -136,13 +133,7 @@ class PenDelegate: NSObject, NSApplicationDelegate {
         
         // Add instruction label
         let instructionLabel = NSTextField(frame: NSRect(x: 0, y: 0, width: 180, height: footerHeight))
-        // Load saved shortcut from UserDefaults
-        let defaults = UserDefaults.standard
-        let shortcutKeyDefaultsKey = "pen.shortcutKey"
-        let defaultShortcut = "Command+Option+P"
-        let savedShortcut = defaults.string(forKey: shortcutKeyDefaultsKey) ?? defaultShortcut
-        let displayShortcut = LocalizationService.shared.formatShortcutForDisplay(savedShortcut)
-        instructionLabel.stringValue = LocalizationService.shared.localizedString(for: "pen_footer_instruction", withFormat: displayShortcut)
+        instructionLabel.stringValue = LocalizationService.shared.localizedString(for: "pen_footer_appname")
         instructionLabel.isBezeled = false
         instructionLabel.drawsBackground = false
         instructionLabel.isEditable = false
