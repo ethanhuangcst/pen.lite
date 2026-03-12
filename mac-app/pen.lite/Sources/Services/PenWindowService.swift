@@ -213,22 +213,13 @@ class PenWindowService {
         var enhancedTextTooltip: String? = nil
         
         // Find and store current text values
-        for subview in contentView.subviews {
-            if let container = subview as? NSView, container.identifier?.rawValue == ViewIdentifier.penOriginalText.rawValue {
-                for subview in container.subviews {
-                    if let textField = subview as? NSTextField, textField.identifier?.rawValue == ViewIdentifier.penOriginalTextText.rawValue {
-                        originalText = textField.stringValue
-                        originalTextTooltip = textField.toolTip
-                    }
-                }
-            } else if let container = subview as? NSView, container.identifier?.rawValue == ViewIdentifier.penEnhancedText.rawValue {
-                for subview in container.subviews {
-                    if let textField = subview as? NSTextField, textField.identifier?.rawValue == ViewIdentifier.penEnhancedTextText.rawValue {
-                        enhancedText = textField.stringValue
-                        enhancedTextTooltip = textField.toolTip
-                    }
-                }
-            }
+        if let textField = contentView.findTextField(inContainer: .penOriginalText, textFieldIdentifier: .penOriginalTextText) {
+            originalText = textField.stringValue
+            originalTextTooltip = textField.toolTip
+        }
+        if let textField = contentView.findTextField(inContainer: .penEnhancedText, textFieldIdentifier: .penEnhancedTextText) {
+            enhancedText = textField.stringValue
+            enhancedTextTooltip = textField.toolTip
         }
         
         // Clear existing views except for the close button
@@ -277,31 +268,17 @@ class PenWindowService {
         // Restore text values if they exist (not placeholder text)
         if let originalText = originalText, !originalText.isEmpty, 
            originalText != LocalizationService.shared.localizedString(for: "pen_original_text_placeholder") {
-            for subview in contentView.subviews {
-                if let container = subview as? NSView, container.identifier?.rawValue == ViewIdentifier.penOriginalText.rawValue {
-                    for subview in container.subviews {
-                        if let textField = subview as? NSTextField, textField.identifier?.rawValue == ViewIdentifier.penOriginalTextText.rawValue {
-                            textField.stringValue = originalText
-                            textField.toolTip = originalTextTooltip
-                        }
-                    }
-                    break
-                }
+            if let textField = contentView.findTextField(inContainer: .penOriginalText, textFieldIdentifier: .penOriginalTextText) {
+                textField.stringValue = originalText
+                textField.toolTip = originalTextTooltip
             }
         }
         
         if let enhancedText = enhancedText, !enhancedText.isEmpty, 
            enhancedText != LocalizationService.shared.localizedString(for: "pen_enhanced_text_placeholder") {
-            for subview in contentView.subviews {
-                if let container = subview as? NSView, container.identifier?.rawValue == ViewIdentifier.penEnhancedText.rawValue {
-                    for subview in container.subviews {
-                        if let textField = subview as? NSTextField, textField.identifier?.rawValue == ViewIdentifier.penEnhancedTextText.rawValue {
-                            textField.stringValue = enhancedText
-                            textField.toolTip = enhancedTextTooltip
-                        }
-                    }
-                    break
-                }
+            if let textField = contentView.findTextField(inContainer: .penEnhancedText, textFieldIdentifier: .penEnhancedTextText) {
+                textField.stringValue = enhancedText
+                textField.toolTip = enhancedTextTooltip
             }
         }
         

@@ -34,6 +34,14 @@ This code review identifies code quality issues, bad smells, and refactoring opp
 | 3 | Fix missing title label in SettingsWindow | Medium | Low | ✅ Done |
 | 4 | Add missing localization strings | Medium | Low | ✅ Done |
 
+**Commit**: `4817421` - refactor: code quality improvements - Phase 2
+
+### ✅ Completed (Phase 3 - 2026-03-12)
+
+| # | Issue | Impact | Effort | Status |
+|---|-------|--------|--------|--------|
+| 1 | Create NSView view lookup helper methods | Medium | Medium | ✅ Done |
+
 **Commit**: (pending)
 
 ---
@@ -100,6 +108,12 @@ This code review identifies code quality issues, bad smells, and refactoring opp
 
 **Status**: ✅ Fixed - Created ViewIdentifier enum
 
+### 2.6 View Lookup Pattern
+
+**Issue**: Nested loops for finding views by identifier.
+
+**Status**: ✅ Fixed - Created NSView+Extensions.swift with helper methods
+
 ---
 
 ## 3. Architectural Concerns
@@ -136,7 +150,7 @@ This code review identifies code quality issues, bad smells, and refactoring opp
 
 **Issue**: Multiple levels of nested conditionals in view traversal.
 
-**Status**: 🔜 Pending - Medium Priority
+**Status**: ✅ Fixed - Created NSView+Extensions.swift with helper methods
 
 ### 4.3 Commented Code
 
@@ -185,7 +199,7 @@ This code review identifies code quality issues, bad smells, and refactoring opp
 |-------|--------|--------|--------|
 | Create NSTextField factory extension | Medium | Low | ✅ Done |
 | Create ViewIdentifier enum | Medium | Low | ✅ Done |
-| Extract view lookup helper methods | Medium | Medium | 🔜 Pending |
+| Create NSView view lookup helpers | Medium | Medium | ✅ Done |
 | Replace debug prints with logging framework | Medium | Medium | 🔜 Pending |
 
 ### 6.3 Low Priority (Architectural)
@@ -229,12 +243,13 @@ This code review identifies code quality issues, bad smells, and refactoring opp
 6. ~~Create `ViewIdentifier` enum~~ ✅ Done
 7. ~~Fix missing title label in SettingsWindow~~ ✅ Done
 8. ~~Add missing localization strings~~ ✅ Done
+9. ~~Create `NSView` view lookup helpers~~ ✅ Done
 
 ### 🔜 Short-term Actions (Medium Priority)
 
 1. ~~Create `NSTextField` factory extension~~ ✅ Done
 2. ~~Create `ViewIdentifier` enum~~ ✅ Done
-3. Create view lookup helper methods
+3. ~~Create view lookup helper methods~~ ✅ Done
 4. Implement proper logging
 
 ### 🔜 Long-term Actions (Low Priority - Architectural)
@@ -251,12 +266,13 @@ This code review identifies code quality issues, bad smells, and refactoring opp
 |------|-------|--------------|-------|
 | SettingsWindow.swift | 194 | 7 hardcoded values, 1 duplicate | ✅ All fixed |
 | BaseWindow.swift | 651 | 10 hardcoded values | ✅ 1 fixed (popup color) |
-| PenWindowService.swift | 1100+ | 15+ hardcoded values, 4 duplications | ✅ Colors + identifiers fixed |
+| PenWindowService.swift | 1100+ | 15+ hardcoded values, 4 duplications | ✅ Colors + identifiers + helpers |
 | LocalizationService.swift | 112 | Well-designed | No changes needed |
 | ColorService.swift | 55 | Missing colors | ✅ Added 4 new colors |
 | UILayoutConstants.swift | 75 | New file | ✅ Created |
 | NSTextField+Extensions.swift | 52 | New file | ✅ Created |
 | ViewIdentifier.swift | 20 | New file | ✅ Created |
+| NSView+Extensions.swift | 40 | New file | ✅ Created |
 | en.lproj/Localizable.strings | 155 | Missing strings | ✅ Added 8 strings |
 | zh-Hans.lproj/Localizable.strings | 155 | Missing strings | ✅ Added 8 strings |
 
@@ -264,7 +280,7 @@ This code review identifies code quality issues, bad smells, and refactoring opp
 
 ## 10. Conclusion
 
-**Phase 1 & 2 refactoring completed successfully.** All 4 high-priority items and 4 medium-priority items have been addressed:
+**Phase 1, 2 & 3 refactoring completed successfully.** All 4 high-priority items and 5 medium-priority items have been addressed:
 
 1. ✅ Hardcoded colors extracted to ColorService
 2. ✅ UILayoutConstants created for centralized layout management
@@ -274,10 +290,10 @@ This code review identifies code quality issues, bad smells, and refactoring opp
 6. ✅ ViewIdentifier enum created
 7. ✅ Missing title label fixed in SettingsWindow
 8. ✅ Missing localization strings added
+9. ✅ NSView view lookup helpers created
 
 **Remaining work** (Medium and Low priority) includes:
-- Extract view lookup helper methods
-- Implement proper logging framework
+- Replace debug prints with logging framework
 - Architectural refactoring of PenWindowService
 
 These items are tracked for future phases.
