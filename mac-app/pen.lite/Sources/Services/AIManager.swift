@@ -352,6 +352,88 @@ public class AIManager {
         throw lastError ?? AIError.networkError
     }
     
+    public func testConnectionWithValues(apiKey: String, baseURL: String, model: String, providerName: String) async throws -> Bool {
+        func maskSecret(_ value: String) -> String {
+            if value.count <= 8 {
+                return String(repeating: "*", count: value.count)
+            }
+            return "\(value.prefix(4))...\(value.suffix(4))"
+        }
+        
+        print("[AIManager] Testing connection for \(providerName)")
+        print("[AIManager] Base URL: \(baseURL)")
+        print("[AIManager] Model: \(model)")
+        
+        guard let url = URL(string: baseURL) else {
+            throw AIError.configurationError("Invalid URL: \(baseURL)")
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.timeoutInterval = 30.0
+        
+        let testPayload: [String: Any] = [
+            "model": model,
+            "messages": [
+                ["role": "user", "content": "Hello, this is a test to verify API connectivity. Please respond with 'API test successful'."]
+            ],
+            "max_tokens": 20,
+            "temperature": 0.7
+        ]
+        
+        let jsonData = try JSONSerialization.data(withJSONObject: testPayload)
+        request.httpBody = jsonData
+        
+        print("[AIManager] ---- Outbound Request ----")
+        print("[AIManager] Provider: \(providerName)")
+        print("[AIManager] Model: \(model)")
+        print("[AIManager] URL: \(baseURL)")
+        print("[AIManager] Method: \(request.httpMethod ?? "POST")")
+        print("[AIManager] Headers: [\"Authorization\": \"Bearer \(maskSecret(apiKey))\"]")
+        print("[AIManager] --------------------------")
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw AIError.invalidResponse
+        }
+        
+        guard (200...299).contains(httpResponse.statusCode) else {
+            let responseBody = String(data: data, encoding: .utf8) ?? "No response body"
+            print("[AIManager] ❌ Failed: HTTP \(httpResponse.statusCode)")
+            print("[AIManager] Response: \(responseBody.prefix(200))")
+            throw mapError(data, response: httpResponse)
+        }
+        
+        let responseString = String(data: data, encoding: .utf8) ?? ""
+        let trimmedResponse = responseString.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        guard trimmedResponse.hasPrefix("{") || trimmedResponse.hasPrefix("[") else {
+            throw AIError.invalidJSONResponse("Server returned non-JSON response")
+        }
+        
+        let responseData = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+        
+        if let errorDict = responseData?["error"] as? [String: Any] {
+            let errorMsg = errorDict["message"] as? String ?? "Unknown error"
+            throw AIError.providerError(errorMsg)
+        }
+        
+        if let choices = responseData?["choices"] as? [[String: Any]],
+           let firstChoice = choices.first,
+           let message = firstChoice["message"] as? [String: Any],
+           let content = message["content"] as? String {
+            print("[AIManager] ✅ Successfully connected to \(providerName)")
+            print("[AIManager] Response: \(content)")
+            return true
+        }
+        
+        print("[AIManager] ✅ Successfully connected to \(providerName)")
+        return true
+    }
+    
     // Test Call
     public func AITestCall(
         prompt: String,

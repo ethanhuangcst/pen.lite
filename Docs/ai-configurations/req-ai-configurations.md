@@ -46,7 +46,7 @@ And the table shows the following columns:
   | Column | Content |
   |--------|---------|
   | Provider | Provider name (read-only) |
-  | API Key | Masked API key (read-only) |
+  | API Key | Full API key displayed (read-only) |
   | Delete | Delete button |
 And the table supports scrolling if there are more configurations than fit on screen
 ```
@@ -56,6 +56,7 @@ And the table supports scrolling if there are more configurations than fit on sc
 ## User Story ID: US-002
 As a Pen user, I want to edit an AI connection by double-clicking it, so that I can modify the configuration details.
 
+//DONE
 ### Acceptance Criteria ID: US-002-001
 Scenario: Open edit window on double-click
 ```gherkin
@@ -63,7 +64,10 @@ Given the app is running
 And the user is on the AI Connections tab
 And there is at least one AI configuration in the table
 When the user double-clicks on a row
-Then an edit popup window appears
+Then the Settings window is hidden
+And an edit window appears at the exact same position as the Settings window
+And the edit window has the same size as the Settings window (680x520)
+And the edit window inherits from BaseWindow for standard behaviors
 And the window contains the following fields pre-filled with current values:
   | Field | Type | Description |
   |-------|------|-------------|
@@ -77,15 +81,17 @@ And the window contains the following buttons:
   | Cancel | Close window without saving |
   | Test & Save | Test connection and save if successful |
   | Delete | Delete this configuration |
+And only one edit window can be open at a time
 ```
 
 ### Acceptance Criteria ID: US-002-002
 Scenario: Cancel edit without saving
 ```gherkin
-Given the edit popup window is open
+Given the edit window is open
 And the user has modified some fields
 When the user clicks the Cancel button
-Then the popup window closes
+Then the edit window closes
+And the Settings window is restored at the same position
 And no changes are saved
 And the table displays the original values
 ```
@@ -95,33 +101,35 @@ And the table displays the original values
 ## User Story ID: US-003
 As a Pen user, I want to test and save AI connection changes, so that I can ensure my configuration works before saving.
 
+//DONE
 ### Acceptance Criteria ID: US-003-001
 Scenario: Test & Save - success
 ```gherkin
-Given the edit popup window is open
+Given the edit window is open
 And the user has entered valid configuration values
 When the user clicks the Test & Save button
-Then AIManager.testConnection() is called with the configuration
-And a popup message displays "Testing [Provider] before saving..."
+Then AIManager.testConnectionWithValues() is called with the configuration
+And a popup message displays "Testing [Provider]..."
 When the test returns success
 Then the configuration is saved to the local file
 And a success popup message displays "AI Connection test passed! Configuration saved."
-And the popup window closes
+And the edit window closes after 2 seconds
+And the Settings window is restored at the same position
 And the table refreshes to show the updated values
-And the terminal prints "$$$$$$$$$$$$$$$$$$$$ AI Connection [Provider] saved $$$$$$$$$$$$$$$$$$$$"
+And the terminal prints "$$$$$$$$$$$$$$$$$$$$ AI Connection [Provider] saved! $$$$$$$$$$$$$$$$$$$$"
 ```
 
 ### Acceptance Criteria ID: US-003-002
 Scenario: Test & Save - failure
 ```gherkin
-Given the edit popup window is open
+Given the edit window is open
 And the user has entered configuration values
 When the user clicks the Test & Save button
-Then AIManager.testConnection() is called with the configuration
-And a popup message displays "Testing [Provider] before saving..."
+Then AIManager.testConnectionWithValues() is called with the configuration
+And a popup message displays "Testing [Provider]..."
 When the test returns failure
 Then an error popup message displays "AI Connection test failed! [error message]"
-And the popup window remains open
+And the edit window remains open
 And the configuration is NOT saved
 And the terminal prints "$$$$$$$$$$$$$$$$$$$$ AI Connection test failed $$$$$$$$$$$$$$$$$$$$"
 ```
@@ -131,20 +139,22 @@ And the terminal prints "$$$$$$$$$$$$$$$$$$$$ AI Connection test failed $$$$$$$$
 ## User Story ID: US-004
 As a Pen user, I want to add a new AI connection, so that I can use a new AI provider.
 
+//DONE
 ### Acceptance Criteria ID: US-004-001
 Scenario: Add new AI connection
 ```gherkin
 Given the app is running
 And the user is on the AI Connections tab
 When the user clicks the New button
-Then a new row is added to the table with placeholder values
-And the edit popup window opens with empty fields:
+Then the Settings window is hidden
+And the edit window opens at the same position with empty fields:
   | Field | Placeholder |
   |-------|-------------|
   | Provider Name | "Enter provider name" |
   | API Key | "Enter API key" |
   | Base URL | "https://api.example.com/v1" |
   | Model | "Enter model name" |
+And the edit window has the same size as the Settings window (680x520)
 ```
 
 ---
@@ -152,6 +162,7 @@ And the edit popup window opens with empty fields:
 ## User Story ID: US-005
 As a Pen user, I want to delete an AI connection, so that I can remove unused configurations.
 
+//DONE
 ### Acceptance Criteria ID: US-005-001
 Scenario: Delete AI connection - with confirmation
 ```gherkin
@@ -159,10 +170,12 @@ Given the app is running
 And the user is on the AI Connections tab
 And there are more than 1 AI configurations
 When the user clicks the Delete button on a row
-Then a confirmation popup appears with "Are you sure?"
+Then a confirmation popup appears centered in the edit window (if open) or Settings window
 And the popup has Cancel and Delete buttons
 When the user clicks Delete
 Then the configuration is removed from the local file
+And the edit window closes (if open)
+And the Settings window is restored
 And the table refreshes without the deleted row
 And a popup message displays "AI Connection deleted successfully!"
 And the terminal prints "$$$$$$$$$$$$$$$$$$$$ AI Configuration [Provider] deleted! $$$$$$$$$$$$$$$$$$$$"
@@ -176,6 +189,7 @@ When the user clicks the Cancel button
 Then the popup closes
 And the configuration is NOT deleted
 And the table remains unchanged
+And the edit window remains open (if it was open)
 ```
 
 ### Acceptance Criteria ID: US-005-003
@@ -194,6 +208,7 @@ And the configuration is NOT deleted
 ## User Story ID: US-006
 As a Pen user, I want default AI configurations created on first launch, so that I can start using the app immediately.
 
+//DONE
 ### Acceptance Criteria ID: US-006-001
 Scenario: Create default configurations on first launch
 ```gherkin
@@ -234,6 +249,13 @@ And the terminal prints "InitializationService: AI configurations file already e
 - `AIConnectionService`: Manages CRUD operations for AI configurations
 - `AIManager`: Handles AI API calls and connection testing
 - `InitializationService`: Creates default configurations on first launch
+
+### Window Management
+- `EditAIConnectionWindow`: Inherits from BaseWindow
+- Size: 680x520 (same as Settings window)
+- Position: Same as Settings window position
+- Behavior: Settings window hidden when edit window opens
+- Single instance: Only one edit window can be open at a time
 
 ### Validation Rules
 1. At least 1 AI configuration must exist at all times

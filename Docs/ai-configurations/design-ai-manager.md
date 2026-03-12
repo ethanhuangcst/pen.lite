@@ -253,20 +253,30 @@ print("Configurations saved to local file")
 **Location**: `/mac-app/pen.lite/Sources/Views/AIConfigurationTabView.swift`
 
 - Displays configurations in a read-only table
-- Double-click opens edit popup window
-- New button adds a new configuration
+- Double-click opens EditAIConnectionWindow (hides Settings window)
+- New button opens EditAIConnectionWindow with empty fields (hides Settings window)
 - Delete button removes configuration (with validation)
 
-### Edit Configuration Window (To Be Implemented)
+### EditAIConnectionWindow
 
-Popup window with:
-- Provider Name text field
-- API Key text field
-- Base URL text field
-- Model text field
-- Cancel button
-- Test & Save button
-- Delete button
+**Inherits from**: BaseWindow
+
+**Location**: `/mac-app/pen.lite/Sources/Views/EditAIConnectionWindow.swift` (to be created)
+
+**Properties**:
+- Size: 680x520 (same as Settings window)
+- Position: Same as Settings window position
+- Style: Titled with fullSizeContentView (title bar hidden)
+- Single instance: Only one window can be open at a time
+
+**Behavior**:
+- Opens at the exact position of Settings window
+- Hides Settings window when opened
+- Restores Settings window when closed
+- Contains: Provider Name, API Key, Base URL, Model fields
+- Buttons: Cancel, Test & Save, Delete
+
+**See also**: [ui-ai-configurations.md](ui-ai-configurations.md) for detailed UI specifications
 
 ## Migration Notes
 

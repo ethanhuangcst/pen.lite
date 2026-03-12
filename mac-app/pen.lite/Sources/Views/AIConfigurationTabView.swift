@@ -316,17 +316,26 @@ class AIConfigurationTabView: NSView, NSTableViewDataSource, NSTableViewDelegate
     }
     
     @objc private func addNewConfiguration() {
-        // Create a new configuration with default values
-        let newConfiguration = AIConnectionModel(
-            apiProvider: "OpenAI",
-            apiKey: "",
-            apiUrl: "https://api.openai.com/v1/chat/completions",
-            model: "gpt-3.5-turbo",
-            isDefault: false
+        // Open edit window with empty configuration (new mode)
+        let _ = EditAIConnectionWindow.showWindow(
+            configuration: nil,
+            row: -1,
+            settingsWindow: self.window
         )
         
-        configurations.append(newConfiguration)
-        configurationsTable.reloadData()
+        // Set callbacks
+        if let editWindow = EditAIConnectionWindow.sharedWindow {
+            editWindow.onSave = { [weak self] updatedConfig, _ in
+                guard let self = self else { return }
+                self.configurations.append(updatedConfig)
+                try? AIConnectionService.shared.saveConnections(self.configurations)
+                self.configurationsTable.reloadData()
+            }
+            
+            editWindow.onDelete = { [weak self] _, _ in
+                // No delete for new configuration
+            }
+        }
     }
     
     // Store configurations temporarily for delete confirmation
@@ -341,7 +350,8 @@ class AIConfigurationTabView: NSView, NSTableViewDataSource, NSTableViewDelegate
         var originX: CGFloat = 0
         var originY: CGFloat = 0
         
-        if let editWindow = editWindow {
+        // Check if EditAIConnectionWindow is open
+        if let editWindow = EditAIConnectionWindow.sharedWindow {
             // Center in edit window
             let editFrame = editWindow.frame
             originX = editFrame.origin.x + (editFrame.width - dialogWidth) / 2
@@ -475,274 +485,36 @@ class AIConfigurationTabView: NSView, NSTableViewDataSource, NSTableViewDelegate
     
     // MARK: - Edit Window
     
-    private var editWindow: NSWindow?
-    private var editingConfiguration: AIConnectionModel?
-    private var editingRow: Int = -1
-    private var providerField: NSTextField?
-    private var apiKeyField: NSTextField?
-    private var baseUrlField: NSTextField?
-    private var modelField: NSTextField?
-    
     private func showEditWindow(configuration: AIConnectionModel, row: Int) {
-        // Store the configuration being edited
-        editingConfiguration = configuration
-        editingRow = row
-        
-        // Create edit window - borderless style to remove toolbar and system controls
-        let windowWidth: CGFloat = 450
-        let windowHeight: CGFloat = 380
-        
-        editWindow = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: windowWidth, height: windowHeight),
-            styleMask: [.titled, .fullSizeContentView],
-            backing: .buffered,
-            defer: false
+        let editWindow = EditAIConnectionWindow.showWindow(
+            configuration: configuration,
+            row: row,
+            settingsWindow: self.window
         )
         
-        guard let editWindow = editWindow else { return }
-        
-        // Configure window - hide title bar while keeping keyboard input
-        editWindow.titlebarAppearsTransparent = true
-        editWindow.titleVisibility = .hidden
-        editWindow.isMovableByWindowBackground = true
-        editWindow.level = .floating
-        editWindow.hasShadow = true
-        
-        // Create content view with rounded corners
-        let contentView = NSView(frame: NSRect(x: 0, y: 0, width: windowWidth, height: windowHeight))
-        contentView.wantsLayer = true
-        contentView.layer?.backgroundColor = ColorService.shared.backgroundColorCGColor
-        contentView.layer?.cornerRadius = 12
-        contentView.layer?.masksToBounds = true
-        
-        // Add title label (since we removed the title bar)
-        let titleLabel = NSTextField(frame: NSRect(x: 20, y: windowHeight - 40, width: windowWidth - 40, height: 24))
-        titleLabel.stringValue = LocalizationService.shared.localizedString(for: "edit_ai_connection")
-        titleLabel.isBezeled = false
-        titleLabel.drawsBackground = false
-        titleLabel.isEditable = false
-        titleLabel.font = NSFont.boldSystemFont(ofSize: 16)
-        titleLabel.alignment = .center
-        contentView.addSubview(titleLabel)
-        
-        // Add close button (X) in top right corner
-        let closeButton = NSButton(frame: NSRect(x: windowWidth - 35, y: windowHeight - 35, width: 20, height: 20))
-        closeButton.title = "×"
-        closeButton.font = NSFont.boldSystemFont(ofSize: 18)
-        closeButton.bezelStyle = .circular
-        closeButton.isBordered = false
-        closeButton.target = self
-        closeButton.action = #selector(cancelEditWindow)
-        contentView.addSubview(closeButton)
-        
-        // Add fields
-        let labelWidth: CGFloat = 100
-        let fieldWidth: CGFloat = 300
-        let fieldHeight: CGFloat = 24
-        let largeFieldHeight: CGFloat = 44
-        let startX: CGFloat = 20
-        let startY: CGFloat = windowHeight - 80
-        let rowSpacing: CGFloat = 60
-        
-        // Provider Name
-        let providerLabel = NSTextField(frame: NSRect(x: startX, y: startY, width: labelWidth, height: fieldHeight))
-        providerLabel.stringValue = LocalizationService.shared.localizedString(for: "provider_name")
-        providerLabel.isBezeled = false
-        providerLabel.drawsBackground = false
-        providerLabel.isEditable = false
-        providerLabel.font = NSFont.systemFont(ofSize: 13)
-        contentView.addSubview(providerLabel)
-        
-        providerField = NSTextField(frame: NSRect(x: startX + labelWidth, y: startY, width: fieldWidth, height: fieldHeight))
-        providerField?.stringValue = configuration.apiProvider
-        providerField?.font = NSFont.systemFont(ofSize: 13)
-        contentView.addSubview(providerField!)
-        
-        // API Key - larger field with more height
-        let apiKeyLabel = NSTextField(frame: NSRect(x: startX, y: startY - rowSpacing + 20, width: labelWidth, height: fieldHeight))
-        apiKeyLabel.stringValue = LocalizationService.shared.localizedString(for: "api_key")
-        apiKeyLabel.isBezeled = false
-        apiKeyLabel.drawsBackground = false
-        apiKeyLabel.isEditable = false
-        apiKeyLabel.font = NSFont.systemFont(ofSize: 13)
-        contentView.addSubview(apiKeyLabel)
-        
-        // API Key field - larger height for long keys
-        apiKeyField = NSTextField(frame: NSRect(x: startX + labelWidth, y: startY - rowSpacing, width: fieldWidth, height: largeFieldHeight))
-        apiKeyField?.stringValue = configuration.apiKey
-        apiKeyField?.font = NSFont.systemFont(ofSize: 12)
-        apiKeyField?.lineBreakMode = .byTruncatingMiddle
-        contentView.addSubview(apiKeyField!)
-        
-        // Base URL - larger field with more height
-        let baseUrlLabel = NSTextField(frame: NSRect(x: startX, y: startY - rowSpacing * 2 + 20, width: labelWidth, height: fieldHeight))
-        baseUrlLabel.stringValue = LocalizationService.shared.localizedString(for: "base_url")
-        baseUrlLabel.isBezeled = false
-        baseUrlLabel.drawsBackground = false
-        baseUrlLabel.isEditable = false
-        baseUrlLabel.font = NSFont.systemFont(ofSize: 13)
-        contentView.addSubview(baseUrlLabel)
-        
-        // Base URL field - larger height for long URLs
-        baseUrlField = NSTextField(frame: NSRect(x: startX + labelWidth, y: startY - rowSpacing * 2, width: fieldWidth, height: largeFieldHeight))
-        baseUrlField?.stringValue = configuration.apiUrl
-        baseUrlField?.font = NSFont.systemFont(ofSize: 12)
-        baseUrlField?.lineBreakMode = .byTruncatingMiddle
-        contentView.addSubview(baseUrlField!)
-        
-        // Model
-        let modelLabel = NSTextField(frame: NSRect(x: startX, y: startY - rowSpacing * 3 + 20, width: labelWidth, height: fieldHeight))
-        modelLabel.stringValue = LocalizationService.shared.localizedString(for: "model")
-        modelLabel.isBezeled = false
-        modelLabel.drawsBackground = false
-        modelLabel.isEditable = false
-        modelLabel.font = NSFont.systemFont(ofSize: 13)
-        contentView.addSubview(modelLabel)
-        
-        modelField = NSTextField(frame: NSRect(x: startX + labelWidth, y: startY - rowSpacing * 3 + 20, width: fieldWidth, height: fieldHeight))
-        modelField?.stringValue = configuration.model
-        modelField?.font = NSFont.systemFont(ofSize: 13)
-        contentView.addSubview(modelField!)
-        
-        // Buttons
-        let buttonY: CGFloat = 20
-        let buttonWidth: CGFloat = 100
-        let buttonHeight: CGFloat = 32
-        
-        // Cancel button
-        let cancelButton = NSButton(frame: NSRect(x: startX, y: buttonY, width: buttonWidth, height: buttonHeight))
-        cancelButton.title = LocalizationService.shared.localizedString(for: "cancel_button")
-        cancelButton.bezelStyle = .rounded
-        cancelButton.target = self
-        cancelButton.action = #selector(cancelEditWindow)
-        contentView.addSubview(cancelButton)
-        
-        // Test & Save button
-        let testSaveButton = NSButton(frame: NSRect(x: startX + buttonWidth + 20, y: buttonY, width: buttonWidth + 40, height: buttonHeight))
-        testSaveButton.title = LocalizationService.shared.localizedString(for: "test_and_save_button")
-        testSaveButton.bezelStyle = .rounded
-        testSaveButton.target = self
-        testSaveButton.action = #selector(saveConfiguration)
-        testSaveButton.layer?.borderWidth = 1.0
-        testSaveButton.layer?.borderColor = NSColor.systemGreen.cgColor
-        testSaveButton.layer?.cornerRadius = 6.0
-        contentView.addSubview(testSaveButton)
-        
-        // Delete button
-        let deleteButton = NSButton(frame: NSRect(x: windowWidth - buttonWidth - 20, y: buttonY, width: buttonWidth, height: buttonHeight))
-        deleteButton.title = LocalizationService.shared.localizedString(for: "delete_button")
-        deleteButton.bezelStyle = .rounded
-        deleteButton.target = self
-        deleteButton.action = #selector(deleteFromEditWindow)
-        deleteButton.layer?.borderWidth = 1.0
-        deleteButton.layer?.borderColor = NSColor.systemRed.cgColor
-        deleteButton.layer?.cornerRadius = 6.0
-        deleteButton.contentTintColor = NSColor.systemRed
-        contentView.addSubview(deleteButton)
-        
-        editWindow.contentView = contentView
-        
-        // Center the edit window in the Settings window
-        if let settingsWindow = self.window {
-            let settingsFrame = settingsWindow.frame
-            let editFrame = editWindow.frame
-            
-            let centerX = settingsFrame.origin.x + (settingsFrame.width - editFrame.width) / 2
-            let centerY = settingsFrame.origin.y + (settingsFrame.height - editFrame.height) / 2
-            
-            editWindow.setFrameOrigin(NSPoint(x: centerX, y: centerY))
-        }
-        
-        // Activate app and show window with focus
-        NSApp.setActivationPolicy(.regular)
-        NSApp.activate(ignoringOtherApps: true)
-        editWindow.makeKeyAndOrderFront(nil)
-        
-        // Set first responder to provider field after a short delay
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
-            if let providerField = self?.providerField {
-                self?.editWindow?.makeFirstResponder(providerField)
+        editWindow.onSave = { [weak self] updatedConfig, row in
+            guard let self = self else { return }
+            if row >= 0 && row < self.configurations.count {
+                self.configurations[row] = updatedConfig
+            } else {
+                self.configurations.append(updatedConfig)
             }
+            try? AIConnectionService.shared.saveConnections(self.configurations)
+            self.configurationsTable.reloadData()
+        }
+        
+        editWindow.onDelete = { [weak self] config, row in
+            guard let self = self else { return }
+            self.deleteConfiguration(config: config, row: row)
         }
     }
     
-    @objc private func cancelEditWindow() {
-        editWindow?.orderOut(nil)
-        editWindow = nil
-        editingConfiguration = nil
-        editingRow = -1
-    }
-    
-    @objc private func saveConfiguration() {
-        guard let provider = providerField?.stringValue,
-              let apiKey = apiKeyField?.stringValue,
-              let baseUrl = baseUrlField?.stringValue,
-              let model = modelField?.stringValue,
-              let configuration = editingConfiguration,
-              editingRow >= 0 else {
-            return
-        }
-        
-        // Validate fields
-        guard !provider.isEmpty else {
-            WindowManager.shared.displayPopupMessage(LocalizationService.shared.localizedString(for: "provider_name_required"))
-            return
-        }
-        
-        guard !apiKey.isEmpty else {
-            WindowManager.shared.displayPopupMessage(LocalizationService.shared.localizedString(for: "api_key_required"))
-            return
-        }
-        
-        guard !baseUrl.isEmpty else {
-            WindowManager.shared.displayPopupMessage(LocalizationService.shared.localizedString(for: "base_url_required"))
-            return
-        }
-        
-        guard !model.isEmpty else {
-            WindowManager.shared.displayPopupMessage(LocalizationService.shared.localizedString(for: "model_required"))
-            return
-        }
-        
-        // Create updated configuration
-        let updatedConfiguration = AIConnectionModel(
-            id: configuration.id,
-            apiProvider: provider,
-            apiKey: apiKey,
-            apiUrl: baseUrl,
-            model: model,
-            isDefault: configuration.isDefault
-        )
-        
-        // Save configuration
-        self.configurations[self.editingRow] = updatedConfiguration
-        try? AIConnectionService.shared.saveConnections(self.configurations)
-        
-        self.configurationsTable.reloadData()
-        
-        // Show success message and wait before closing
-        WindowManager.shared.displayPopupMessage(LocalizationService.shared.localizedString(for: "ai_connection_saved_successfully"))
-        print(" $$$$$$$$$$$$$$$$$$$$ AI Connection \(provider) saved! $$$$$$$$$$$$$$$$$$$$")
-        
-        // Wait 2 seconds before closing the window
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-            self.editWindow?.orderOut(nil)
-            self.editWindow = nil
-            self.editingConfiguration = nil
-            self.editingRow = -1
-        }
-    }
-    
-    @objc private func deleteFromEditWindow() {
-        guard let configuration = editingConfiguration, editingRow >= 0 else { return }
-        
-        // Check if this is the last configuration
+    private func deleteConfiguration(config: AIConnectionModel, row: Int) {
         if configurations.count <= 1 {
             WindowManager.shared.displayPopupMessage(LocalizationService.shared.localizedString(for: "cannot_delete_last_configuration"))
             return
         }
         
-        // Show delete confirmation dialog without closing edit window
-        showDeleteConfirmationDialog(configuration: configuration, row: editingRow)
+        showDeleteConfirmationDialog(configuration: config, row: row)
     }
 }
