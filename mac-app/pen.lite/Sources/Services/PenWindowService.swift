@@ -214,16 +214,16 @@ class PenWindowService {
         
         // Find and store current text values
         for subview in contentView.subviews {
-            if let container = subview as? NSView, container.identifier?.rawValue == "pen_original_text" {
+            if let container = subview as? NSView, container.identifier?.rawValue == ViewIdentifier.penOriginalText.rawValue {
                 for subview in container.subviews {
-                    if let textField = subview as? NSTextField, textField.identifier?.rawValue == "pen_original_text_text" {
+                    if let textField = subview as? NSTextField, textField.identifier?.rawValue == ViewIdentifier.penOriginalTextText.rawValue {
                         originalText = textField.stringValue
                         originalTextTooltip = textField.toolTip
                     }
                 }
-            } else if let container = subview as? NSView, container.identifier?.rawValue == "pen_enhanced_text" {
+            } else if let container = subview as? NSView, container.identifier?.rawValue == ViewIdentifier.penEnhancedText.rawValue {
                 for subview in container.subviews {
-                    if let textField = subview as? NSTextField, textField.identifier?.rawValue == "pen_enhanced_text_text" {
+                    if let textField = subview as? NSTextField, textField.identifier?.rawValue == ViewIdentifier.penEnhancedTextText.rawValue {
                         enhancedText = textField.stringValue
                         enhancedTextTooltip = textField.toolTip
                     }
@@ -278,9 +278,9 @@ class PenWindowService {
         if let originalText = originalText, !originalText.isEmpty, 
            originalText != LocalizationService.shared.localizedString(for: "pen_original_text_placeholder") {
             for subview in contentView.subviews {
-                if let container = subview as? NSView, container.identifier?.rawValue == "pen_original_text" {
+                if let container = subview as? NSView, container.identifier?.rawValue == ViewIdentifier.penOriginalText.rawValue {
                     for subview in container.subviews {
-                        if let textField = subview as? NSTextField, textField.identifier?.rawValue == "pen_original_text_text" {
+                        if let textField = subview as? NSTextField, textField.identifier?.rawValue == ViewIdentifier.penOriginalTextText.rawValue {
                             textField.stringValue = originalText
                             textField.toolTip = originalTextTooltip
                         }
@@ -293,9 +293,9 @@ class PenWindowService {
         if let enhancedText = enhancedText, !enhancedText.isEmpty, 
            enhancedText != LocalizationService.shared.localizedString(for: "pen_enhanced_text_placeholder") {
             for subview in contentView.subviews {
-                if let container = subview as? NSView, container.identifier?.rawValue == "pen_enhanced_text" {
+                if let container = subview as? NSView, container.identifier?.rawValue == ViewIdentifier.penEnhancedText.rawValue {
                     for subview in container.subviews {
-                        if let textField = subview as? NSTextField, textField.identifier?.rawValue == "pen_enhanced_text_text" {
+                        if let textField = subview as? NSTextField, textField.identifier?.rawValue == ViewIdentifier.penEnhancedTextText.rawValue {
                             textField.stringValue = enhancedText
                             textField.toolTip = enhancedTextTooltip
                         }
@@ -313,7 +313,7 @@ class PenWindowService {
         let footerContainer = NSView(frame: NSRect(x: 0, y: 0, width: 378, height: footerHeight))
         footerContainer.wantsLayer = true
         footerContainer.layer?.backgroundColor = NSColor.clear.cgColor
-        footerContainer.identifier = NSUserInterfaceItemIdentifier("pen_footer")
+        footerContainer.identifier = NSUserInterfaceItemIdentifier(ViewIdentifier.penFooter.rawValue)
         
         // Add instruction label
         let instructionLabel = NSTextField(frame: NSRect(x: 44, y: -7, width: 180, height: footerHeight))
@@ -341,7 +341,7 @@ class PenWindowService {
         
         // Add auto switch button
         let autoSwitch = CustomSwitch(frame: NSRect(x: 326, y: 6, width: 32, height: 18))
-        autoSwitch.identifier = NSUserInterfaceItemIdentifier("pen_footer_auto_switch_button")
+        autoSwitch.identifier = NSUserInterfaceItemIdentifier(ViewIdentifier.penFooterAutoSwitchButton.rawValue)
         autoSwitch.isOn = inputMode == .auto
         autoSwitch.target = self
         autoSwitch.action = #selector(handleModeSwitchChanged(_:))
@@ -458,11 +458,11 @@ class PenWindowService {
         let controllerContainer = NSView(frame: NSRect(x: 20, y: 228, width: 338, height: 30))
         controllerContainer.wantsLayer = true
         controllerContainer.layer?.backgroundColor = NSColor.clear.cgColor
-        controllerContainer.identifier = NSUserInterfaceItemIdentifier("pen_controller")
+        controllerContainer.identifier = NSUserInterfaceItemIdentifier(ViewIdentifier.penController.rawValue)
         
         // Add pen_controller_prompts drop-down box
         let promptsDropdown = NSPopUpButton(frame: NSRect(x: 0, y: 5, width: 222, height: 20))
-        promptsDropdown.identifier = NSUserInterfaceItemIdentifier("pen_controller_prompts")
+        promptsDropdown.identifier = NSUserInterfaceItemIdentifier(ViewIdentifier.penControllerPrompts.rawValue)
         promptsDropdown.addItem(withTitle: LocalizationService.shared.localizedString(for: "pen_select_prompt"))
         promptsDropdown.font = NSFont.systemFont(ofSize: 12)
         promptsDropdown.target = self
@@ -477,7 +477,7 @@ class PenWindowService {
         
         // Add pen_controller_provider drop-down box
         let providerDropdown = NSPopUpButton(frame: NSRect(x: 228, y: 5, width: 110, height: 20))
-        providerDropdown.identifier = NSUserInterfaceItemIdentifier("pen_controller_provider")
+        providerDropdown.identifier = NSUserInterfaceItemIdentifier(ViewIdentifier.penControllerProvider.rawValue)
         providerDropdown.addItem(withTitle: LocalizationService.shared.localizedString(for: "pen_select_provider"))
         providerDropdown.font = NSFont.systemFont(ofSize: 12)
         providerDropdown.target = self
@@ -545,7 +545,7 @@ class PenWindowService {
         let inputComposerContainer = NSView(frame: NSRect(x: 20, y: 258, width: 338, height: 88))
         inputComposerContainer.wantsLayer = true
         inputComposerContainer.layer?.backgroundColor = NSColor.clear.cgColor
-        inputComposerContainer.identifier = NSUserInterfaceItemIdentifier("pen_original_text_input")
+        inputComposerContainer.identifier = NSUserInterfaceItemIdentifier(ViewIdentifier.penOriginalTextInput.rawValue)
         inputComposerContainer.isHidden = true
         
         let composerBox = NSView(frame: NSRect(x: 0, y: 0, width: 338, height: 88))
@@ -885,7 +885,7 @@ class PenWindowService {
             
             // Remove any existing settings button if present
             for subview in contentView.subviews {
-                if let button = subview as? NSButton, button.identifier?.rawValue == "pen_open_settings_button" {
+                if let button = subview as? NSButton, button.identifier?.rawValue == ViewIdentifier.penOpenSettingsButton.rawValue {
                     button.removeFromSuperview()
                     break
                 }

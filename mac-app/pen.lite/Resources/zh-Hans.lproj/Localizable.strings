@@ -18,7 +18,7 @@
 "save_button" = "保存";
 
 /* AI Connections tab */
-"ai_connections_for" = "%@ 的 AI 连接";
+"ai_connections_for" = "AI 连接";
 "ai_model_provider" = "AI 模型提供商";
 "api_key" = "API 密钥";
 "new_button" = "新建";
@@ -61,8 +61,8 @@
 "ai_connection_deleted_successfully" = "AI 连接删除成功！";
 "failed_to_delete_ai_configuration" = "删除 AI 配置失败！";
 "duplicated_api_key_or_provider" = "重复的 API 密钥或提供商，AI 连接配置未保存。\n请检查 API 密钥和提供商。";
-"ai_connection_test_passed_new" = "AI 连接测试通过！\n已为 %@ 创建新的 AI 连接 %@";
-"ai_connection_test_passed_updated" = "AI 连接测试通过！\n已为 %@ 更新 AI 连接配置 %@";
+"ai_connection_test_passed_new" = "AI 连接测试通过！\n已创建新的 AI 连接 %@";
+"ai_connection_test_passed_updated" = "AI 连接测试通过！\n更新 AI 连接配置 %@";
 "ai_connection_test_passed_new_no_user" = "AI 连接测试通过！\n已创建新的 AI 连接 %@。";
 "ai_connection_test_passed_updated_no_user" = "AI 连接测试通过！\nAI 连接配置已更新。";
 "ai_connection_test_failed_new" = "AI 连接测试失败！\n未为 %@ 创建新的 AI 连接 %@。\n请检查您的配置并重试。";
@@ -105,6 +105,14 @@
 "failed_to_update_prompt" = "更新提示词失败";
 "failed_to_delete_prompt" = "删除提示词失败";
 "no_prompts_saved_yet" = "尚未保存任何提示词";
+"new_prompt_title" = "Pen Lite - 新建提示词";
+"edit_prompt_title" = "Pen Lite - 编辑提示词";
+"set_as_default_prompt" = "设为默认提示词";
+"enter_prompt_name_placeholder" = "输入提示词名称";
+"markdown_format_recommended_tooltip" = "推荐使用 Markdown 格式";
+"all_fields_required" = "所有字段为必填项";
+"create_new_prompt_canceled" = "新建提示词已取消";
+"edit_prompt_canceled" = "编辑提示词已取消";
 
 /* Clipboard messages */
 "clipboard_empty_message" = "剪贴板为空。请复制文本后点击粘贴按钮，或使用热键处理。";
@@ -126,7 +134,7 @@
 "pen_refining_content" = "正在优化...";
 
 /* Prompts tab */
-"predefined_prompts_for" = "%@ 的预定义提示词";
+"predefined_prompts_for" = "预定义提示词";
 "default_suffix" = "(默认)";
 "cannot_delete_last_prompt" = "无法删除最后一个提示词";
 

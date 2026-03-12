@@ -30,6 +30,9 @@ This code review identifies code quality issues, bad smells, and refactoring opp
 | # | Issue | Impact | Effort | Status |
 |---|-------|--------|--------|--------|
 | 1 | Create NSTextField factory extension | Medium | Low | ✅ Done |
+| 2 | Create ViewIdentifier enum | Medium | Low | ✅ Done |
+| 3 | Fix missing title label in SettingsWindow | Medium | Low | ✅ Done |
+| 4 | Add missing localization strings | Medium | Low | ✅ Done |
 
 **Commit**: (pending)
 
@@ -61,6 +64,7 @@ This code review identifies code quality issues, bad smells, and refactoring opp
 |----------|-------|--------|
 | Line 392 | `NSColor(red: 104.0/255.0, ...)` | ✅ Fixed - uses ColorService.enhancedTextColor |
 | Line 400, 476, 522, 554 | Border color duplicated | ✅ Fixed - uses ColorService.standardBorderColorCGColor |
+| Multiple lines | String identifiers hardcoded | ✅ Fixed - uses ViewIdentifier enum |
 
 ---
 
@@ -90,6 +94,12 @@ This code review identifies code quality issues, bad smells, and refactoring opp
 
 **Status**: 🔜 Pending - Medium Priority
 
+### 2.5 String Identifiers
+
+**Issue**: String identifiers scattered throughout the code.
+
+**Status**: ✅ Fixed - Created ViewIdentifier enum
+
 ---
 
 ## 3. Architectural Concerns
@@ -110,7 +120,7 @@ This code review identifies code quality issues, bad smells, and refactoring opp
 
 **Issue**: String identifiers are scattered throughout the code.
 
-**Status**: 🔜 Pending - Medium Priority
+**Status**: ✅ Fixed - Created ViewIdentifier enum
 
 ---
 
@@ -152,6 +162,10 @@ This code review identifies code quality issues, bad smells, and refactoring opp
 
 **Status**: ✅ Fixed - Added to ColorService.swift
 
+### 5.3 View Identifiers
+
+**Status**: ✅ Fixed - Created ViewIdentifier.swift
+
 ---
 
 ## 6. Refactoring Opportunities
@@ -170,8 +184,8 @@ This code review identifies code quality issues, bad smells, and refactoring opp
 | Issue | Impact | Effort | Status |
 |-------|--------|--------|--------|
 | Create NSTextField factory extension | Medium | Low | ✅ Done |
+| Create ViewIdentifier enum | Medium | Low | ✅ Done |
 | Extract view lookup helper methods | Medium | Medium | 🔜 Pending |
-| Create IdentifierConstants enum | Medium | Low | 🔜 Pending |
 | Replace debug prints with logging framework | Medium | Medium | 🔜 Pending |
 
 ### 6.3 Low Priority (Architectural)
@@ -212,12 +226,15 @@ This code review identifies code quality issues, bad smells, and refactoring opp
 3. ~~Remove duplicate `windowHeight` declaration~~ ✅ Done
 4. ~~Fix unused variable warnings~~ ✅ Done
 5. ~~Create `NSTextField` factory extension~~ ✅ Done
+6. ~~Create `ViewIdentifier` enum~~ ✅ Done
+7. ~~Fix missing title label in SettingsWindow~~ ✅ Done
+8. ~~Add missing localization strings~~ ✅ Done
 
 ### 🔜 Short-term Actions (Medium Priority)
 
 1. ~~Create `NSTextField` factory extension~~ ✅ Done
-2. Create view lookup helper methods
-3. Create `IdentifierConstants` enum
+2. ~~Create `ViewIdentifier` enum~~ ✅ Done
+3. Create view lookup helper methods
 4. Implement proper logging
 
 ### 🔜 Long-term Actions (Low Priority - Architectural)
@@ -234,27 +251,32 @@ This code review identifies code quality issues, bad smells, and refactoring opp
 |------|-------|--------------|-------|
 | SettingsWindow.swift | 194 | 7 hardcoded values, 1 duplicate | ✅ All fixed |
 | BaseWindow.swift | 651 | 10 hardcoded values | ✅ 1 fixed (popup color) |
-| PenWindowService.swift | 1100+ | 15+ hardcoded values, 4 duplications | ✅ 5 fixed (colors + unused vars) |
+| PenWindowService.swift | 1100+ | 15+ hardcoded values, 4 duplications | ✅ Colors + identifiers fixed |
 | LocalizationService.swift | 112 | Well-designed | No changes needed |
 | ColorService.swift | 55 | Missing colors | ✅ Added 4 new colors |
 | UILayoutConstants.swift | 75 | New file | ✅ Created |
 | NSTextField+Extensions.swift | 52 | New file | ✅ Created |
+| ViewIdentifier.swift | 20 | New file | ✅ Created |
+| en.lproj/Localizable.strings | 155 | Missing strings | ✅ Added 8 strings |
+| zh-Hans.lproj/Localizable.strings | 155 | Missing strings | ✅ Added 8 strings |
 
 ---
 
 ## 10. Conclusion
 
-**Phase 1 & 2 refactoring completed successfully.** All 4 high-priority items and 1 medium-priority item have been addressed:
+**Phase 1 & 2 refactoring completed successfully.** All 4 high-priority items and 4 medium-priority items have been addressed:
 
 1. ✅ Hardcoded colors extracted to ColorService
 2. ✅ UILayoutConstants created for centralized layout management
 3. ✅ Duplicate windowHeight declaration removed
 4. ✅ Unused variable warnings fixed
 5. ✅ NSTextField factory extension created
+6. ✅ ViewIdentifier enum created
+7. ✅ Missing title label fixed in SettingsWindow
+8. ✅ Missing localization strings added
 
 **Remaining work** (Medium and Low priority) includes:
 - Extract view lookup helper methods
-- Create IdentifierConstants enum
 - Implement proper logging framework
 - Architectural refactoring of PenWindowService
 

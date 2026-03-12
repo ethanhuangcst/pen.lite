@@ -18,7 +18,7 @@
 "save_button" = "Save";
 
 /* AI Connections tab */
-"ai_connections_for" = "AI Connections for %@";
+"ai_connections_for" = "AI Connections";
 "ai_model_provider" = "AI Model Provider";
 "api_key" = "API Key";
 "new_button" = "New";
@@ -61,8 +61,8 @@
 "ai_connection_deleted_successfully" = "AI Connection deleted successfully!";
 "failed_to_delete_ai_configuration" = "Failed to delete AI Configuration!";
 "duplicated_api_key_or_provider" = "Duplicated API Key or Provider, AI Connection configuration not saved.\nPlease check the API Key and Provider.";
-"ai_connection_test_passed_new" = "AI Connection test passed!\nNew AI Connection %@ created for %@";
-"ai_connection_test_passed_updated" = "AI Connection test passed!\nAI Connection configuration %@ updated for %@";
+"ai_connection_test_passed_new" = "AI Connection test passed!\nNew AI Connection %@ created";
+"ai_connection_test_passed_updated" = "AI Connection test passed!\nAI Connection configuration %@ updated";
 "ai_connection_test_passed_new_no_user" = "AI Connection test passed!\nNew AI Connection %@ created.";
 "ai_connection_test_passed_updated_no_user" = "AI Connection test passed!\nAI Connection configuration updated.";
 "ai_connection_test_failed_new" = "AI Connection test failed!\nNo new AI Connection %@ created for %@.\nPlease check your configuration and try again.";
@@ -105,6 +105,14 @@
 "failed_to_update_prompt" = "Failed to update prompt";
 "failed_to_delete_prompt" = "Failed to delete prompt";
 "no_prompts_saved_yet" = "No prompts saved yet";
+"new_prompt_title" = "Pen Lite - New Prompt";
+"edit_prompt_title" = "Pen Lite - Edit Prompt";
+"set_as_default_prompt" = "Set as default prompt";
+"enter_prompt_name_placeholder" = "Enter prompt name";
+"markdown_format_recommended_tooltip" = "Markdown format recommended";
+"all_fields_required" = "All fields are required";
+"create_new_prompt_canceled" = "Create new prompt canceled";
+"edit_prompt_canceled" = "Edit prompt canceled";
 
 /* Clipboard messages */
 "clipboard_empty_message" = "Clipboard is empty. Copy your text and click paste button, or use hot key to process.";
@@ -126,7 +134,7 @@
 "pen_refining_content" = "Refining ...";
 
 /* Prompts tab */
-"predefined_prompts_for" = "Predefined prompts for %@";
+"predefined_prompts_for" = "Predefined prompts";
 "default_suffix" = "(Default)";
 "cannot_delete_last_prompt" = "Cannot delete the last prompt";
 

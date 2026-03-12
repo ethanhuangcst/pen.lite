@@ -102,6 +102,7 @@ class SettingsWindow: BaseWindow {
             ),
             value: LocalizationService.shared.localizedString(for: "pen_ai_preferences")
         )
+        contentView.addSubview(titleLabel)
         
         // Add language switch
         addLanguageSwitch(to: contentView, windowHeight: windowHeight)
