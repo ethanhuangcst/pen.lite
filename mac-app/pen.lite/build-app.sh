@@ -7,8 +7,9 @@ set -e
 echo "Building Pen.app..."
 
 # Configuration
-APP_NAME="Pen"
-VERSION="1.1.2"
+APP_NAME="Pen Lite"
+EXECUTABLE_NAME="Pen"
+VERSION="1.0.0"
 BUILD_DIR=".build/release"
 APP_BUNDLE="${APP_NAME}.app"
 RESOURCES_DIR="Resources"
@@ -29,16 +30,16 @@ mkdir -p "${APP_BUNDLE}/Contents/Resources"
 
 # Copy executable
 echo "Copying executable..."
-cp "${BUILD_DIR}/${APP_NAME}" "${APP_BUNDLE}/Contents/MacOS/${APP_NAME}"
+cp "${BUILD_DIR}/${EXECUTABLE_NAME}" "${APP_BUNDLE}/Contents/MacOS/${EXECUTABLE_NAME}"
 
 # Copy Info.plist
 echo "Copying Info.plist..."
 cp Info.plist "${APP_BUNDLE}/Contents/Info.plist"
 
 # Update Info.plist with actual values
-/usr/libexec/PlistBuddy -c "Set :CFBundleExecutable ${APP_NAME}" "${APP_BUNDLE}/Contents/Info.plist"
+/usr/libexec/PlistBuddy -c "Set :CFBundleExecutable ${EXECUTABLE_NAME}" "${APP_BUNDLE}/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c "Set :CFBundleName ${APP_NAME}" "${APP_BUNDLE}/Contents/Info.plist"
-/usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier com.penai.${APP_NAME}" "${APP_BUNDLE}/Contents/Info.plist"
+/usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier com.penai.penlite" "${APP_BUNDLE}/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${VERSION}" "${APP_BUNDLE}/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${VERSION}" "${APP_BUNDLE}/Contents/Info.plist"
 
@@ -89,7 +90,7 @@ fi
 
 # Set permissions
 echo "Setting permissions..."
-chmod +x "${APP_BUNDLE}/Contents/MacOS/${APP_NAME}"
+chmod +x "${APP_BUNDLE}/Contents/MacOS/${EXECUTABLE_NAME}"
 chmod -R 755 "${APP_BUNDLE}"
 
 # Create DMG
