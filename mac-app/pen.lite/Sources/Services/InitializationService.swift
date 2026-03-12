@@ -24,7 +24,7 @@ class InitializationService {
         
         // Step 1: Initialize file storage
         print("InitializationService: Step 1 - Initializing file storage")
-        let fileStorage = FileStorageService.shared
+        _ = FileStorageService.shared
         print("InitializationService: File storage initialized successfully")
         
         // Step 1.5: Initialize default configurations if needed

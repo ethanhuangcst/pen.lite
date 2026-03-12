@@ -33,6 +33,30 @@ class ColorService {
         return NSColor.shadowColor
     }
     
+    var enhancedTextColor: NSColor {
+        return NSColor(red: 104.0/255.0, green: 153.0/255.0, blue: 210.0/255.0, alpha: 1.0)
+    }
+    
+    var standardBorderColor: NSColor {
+        return NSColor(red: 192.0/255.0, green: 192.0/255.0, blue: 192.0/255.0, alpha: 1.0)
+    }
+    
+    var popupBackgroundColor: NSColor {
+        return NSColor.systemBlue.withAlphaComponent(0.75)
+    }
+    
+    var popupBackgroundColorCGColor: CGColor {
+        return popupBackgroundColor.cgColor
+    }
+    
+    var standardBorderColorCGColor: CGColor {
+        return standardBorderColor.cgColor
+    }
+    
+    var enhancedTextColorCGColor: CGColor {
+        return enhancedTextColor.cgColor
+    }
+    
     var backgroundColorCGColor: CGColor {
         return NSColor.windowBackgroundColor.cgColor
     }

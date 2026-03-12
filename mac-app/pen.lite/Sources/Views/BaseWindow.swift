@@ -443,7 +443,7 @@ class BaseWindow: NSWindow {
         containerView.wantsLayer = true
         containerView.layer?.cornerRadius = 12
         // Use a different color from main window with 75% opacity
-        containerView.layer?.backgroundColor = NSColor.systemBlue.withAlphaComponent(0.75).cgColor
+        containerView.layer?.backgroundColor = ColorService.shared.popupBackgroundColorCGColor
         
         // Add shadow effect
         let shadow = NSShadow()

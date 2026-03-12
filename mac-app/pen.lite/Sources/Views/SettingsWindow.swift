@@ -2,7 +2,8 @@ import Cocoa
 
 class SettingsWindow: BaseWindow {
     // MARK: - Properties
-    private let windowWidth: CGFloat = 600
+    private let windowWidth = UILayoutConstants.settingsWindowWidth
+    private let windowHeight = UILayoutConstants.settingsWindowHeight
     
     private var titleLabel: NSTextField!
     private var languageLabel: NSTextField!
@@ -11,8 +12,6 @@ class SettingsWindow: BaseWindow {
     
     // MARK: - Initialization
     init() {
-        // Calculate window size
-        let windowHeight: CGFloat = 518 // Fixed height as specified in requirements
         let windowSize = NSSize(width: windowWidth, height: windowHeight)
         
         // Create window with borderless style (default from BaseWindow)
@@ -80,9 +79,6 @@ class SettingsWindow: BaseWindow {
     
     /// Sets up the content view with logo and tabs
     private func setupContentView() {
-        // Use fixed height as specified in requirements (518px)
-        let windowHeight: CGFloat = 518 // Fixed height as specified in requirements
-        
         // Create standard content view with consistent styling
         let contentView = createStandardContentView(size: NSSize(width: windowWidth, height: windowHeight))
         
@@ -97,20 +93,30 @@ class SettingsWindow: BaseWindow {
         addPenAILogo(to: contentView, windowHeight: windowHeight)
         
         // Add title
-        titleLabel = NSTextField(frame: NSRect(x: 70, y: windowHeight - 55, width: 200, height: 30))
+        titleLabel = NSTextField(frame: NSRect(
+            x: UILayoutConstants.SettingsWindow.titleXOffset,
+            y: windowHeight - UILayoutConstants.headerHeight,
+            width: UILayoutConstants.SettingsWindow.titleWidth,
+            height: UILayoutConstants.SettingsWindow.titleHeight
+        ))
         titleLabel.stringValue = LocalizationService.shared.localizedString(for: "pen_ai_preferences")
         titleLabel.isBezeled = false
         titleLabel.drawsBackground = false
         titleLabel.isEditable = false
         titleLabel.isSelectable = false
-        titleLabel.font = NSFont.boldSystemFont(ofSize: 18)
+        titleLabel.font = NSFont.boldSystemFont(ofSize: UILayoutConstants.titleFontSize)
         contentView.addSubview(titleLabel)
         
         // Add language switch
         addLanguageSwitch(to: contentView, windowHeight: windowHeight)
         
         // Add user_settings frame
-        let userSettingsFrame = NSView(frame: NSRect(x: 20, y: 20, width: windowWidth - 40, height: windowHeight - 100)) // Space from header
+        let userSettingsFrame = NSView(frame: NSRect(
+            x: UILayoutConstants.SettingsWindow.tabViewXOffset,
+            y: UILayoutConstants.SettingsWindow.tabViewYOffset,
+            width: windowWidth - UILayoutConstants.SettingsWindow.tabViewWidthOffset,
+            height: windowHeight - UILayoutConstants.SettingsWindow.tabViewHeightOffset
+        ))
         userSettingsFrame.wantsLayer = true
         userSettingsFrame.layer?.backgroundColor = ColorService.shared.backgroundColorCGColor
         
@@ -154,7 +160,12 @@ class SettingsWindow: BaseWindow {
     }
     
     private func addLanguageSwitch(to contentView: NSView, windowHeight: CGFloat) {
-        languageLabel = NSTextField(frame: NSRect(x: 380, y: 473, width: 100, height: 20))
+        languageLabel = NSTextField(frame: NSRect(
+            x: UILayoutConstants.SettingsWindow.languageLabelX,
+            y: UILayoutConstants.SettingsWindow.languageLabelY,
+            width: UILayoutConstants.SettingsWindow.languageLabelWidth,
+            height: UILayoutConstants.SettingsWindow.languageLabelHeight
+        ))
         languageLabel.stringValue = LocalizationService.shared.localizedString(for: "language_label")
         languageLabel.isBezeled = false
         languageLabel.drawsBackground = false
@@ -164,7 +175,12 @@ class SettingsWindow: BaseWindow {
         languageLabel.alignment = .left
         contentView.addSubview(languageLabel)
         
-        languageDropdown = NSPopUpButton(frame: NSRect(x: 460, y: 473, width: 100, height: 20))
+        languageDropdown = NSPopUpButton(frame: NSRect(
+            x: UILayoutConstants.SettingsWindow.languageDropdownX,
+            y: UILayoutConstants.SettingsWindow.languageDropdownY,
+            width: UILayoutConstants.SettingsWindow.languageDropdownWidth,
+            height: UILayoutConstants.SettingsWindow.languageDropdownHeight
+        ))
         languageDropdown.bezelStyle = .rounded
         languageDropdown.font = NSFont.systemFont(ofSize: NSFont.systemFontSize)
         

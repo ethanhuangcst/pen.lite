@@ -8,7 +8,7 @@
 
 /* Settings window */
 "pen_ai_preferences" = "Pen Lite - 设置";
-"language_label" = "语言：";
+"language_label" = "选择语言：";
 "close" = "关闭";
 "ai_connections" = "AI 连接";
 "prompts" = "提示词";

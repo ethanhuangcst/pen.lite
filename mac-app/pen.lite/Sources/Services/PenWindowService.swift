@@ -121,7 +121,7 @@ class PenWindowService {
     // MARK: - Initialization Method
     
     func initiatePen() async {
-        guard let window = window else {
+        guard window != nil else {
             print("[PenWindowService] Window not initialized")
             return
         }
@@ -156,7 +156,7 @@ class PenWindowService {
     // MARK: - AI Configurations Loading
     
     private func loadAIConfigurations() async {
-        guard let window = window else { return }
+        guard window != nil else { return }
         
         // Load prompts regardless of AI configuration status
         await loadPrompts()
@@ -389,7 +389,7 @@ class PenWindowService {
         enhancedTextField.isEditable = false
         enhancedTextField.isSelectable = true
         enhancedTextField.font = NSFont.systemFont(ofSize: 12)
-        enhancedTextField.textColor = NSColor(red: 104.0/255.0, green: 153.0/255.0, blue: 210.0/255.0, alpha: 1.0)
+        enhancedTextField.textColor = ColorService.shared.enhancedTextColor
         enhancedTextField.alignment = .left
         enhancedTextField.identifier = NSUserInterfaceItemIdentifier("pen_enhanced_text_text")
         
@@ -397,8 +397,7 @@ class PenWindowService {
         enhancedTextField.wantsLayer = true
         enhancedTextField.layer?.backgroundColor = NSColor.clear.cgColor
         enhancedTextField.layer?.borderWidth = 1.0
-        let borderColor = NSColor(red: 192.0/255.0, green: 192.0/255.0, blue: 192.0/255.0, alpha: 1.0)
-        enhancedTextField.layer?.borderColor = borderColor.cgColor
+        enhancedTextField.layer?.borderColor = ColorService.shared.standardBorderColorCGColor
         enhancedTextField.layer?.cornerRadius = 4.0
         
         // Make text field clickable
@@ -415,7 +414,7 @@ class PenWindowService {
         clickableTextField.wantsLayer = true
         clickableTextField.layer?.backgroundColor = NSColor.clear.cgColor
         clickableTextField.layer?.borderWidth = 1.0
-        clickableTextField.layer?.borderColor = borderColor.cgColor
+        clickableTextField.layer?.borderColor = ColorService.shared.standardBorderColorCGColor
         clickableTextField.layer?.cornerRadius = 4.0
         
         // Set action for click
@@ -473,8 +472,7 @@ class PenWindowService {
         promptsDropdown.wantsLayer = true
         promptsDropdown.layer?.backgroundColor = NSColor.clear.cgColor
         promptsDropdown.layer?.borderWidth = 1.0
-        let borderColor = NSColor(red: 192.0/255.0, green: 192.0/255.0, blue: 192.0/255.0, alpha: 1.0)
-        promptsDropdown.layer?.borderColor = borderColor.cgColor
+        promptsDropdown.layer?.borderColor = ColorService.shared.standardBorderColorCGColor
         promptsDropdown.layer?.cornerRadius = 4.0
         
         // Add pen_controller_provider drop-down box
@@ -489,7 +487,7 @@ class PenWindowService {
         providerDropdown.wantsLayer = true
         providerDropdown.layer?.backgroundColor = NSColor.clear.cgColor
         providerDropdown.layer?.borderWidth = 1.0
-        providerDropdown.layer?.borderColor = borderColor.cgColor
+        providerDropdown.layer?.borderColor = ColorService.shared.standardBorderColorCGColor
         providerDropdown.layer?.cornerRadius = 4.0
         
         controllerContainer.addSubview(promptsDropdown)
@@ -519,8 +517,7 @@ class PenWindowService {
         originalTextField.wantsLayer = true
         originalTextField.layer?.backgroundColor = NSColor.clear.cgColor
         originalTextField.layer?.borderWidth = 1.0
-        let borderColor = NSColor(red: 192.0/255.0, green: 192.0/255.0, blue: 192.0/255.0, alpha: 1.0)
-        originalTextField.layer?.borderColor = borderColor.cgColor
+        originalTextField.layer?.borderColor = ColorService.shared.standardBorderColorCGColor
         originalTextField.layer?.cornerRadius = 4.0
         
         // Use ClickableTextField for arrow cursor
@@ -537,7 +534,7 @@ class PenWindowService {
         clickableTextField.wantsLayer = true
         clickableTextField.layer?.backgroundColor = NSColor.clear.cgColor
         clickableTextField.layer?.borderWidth = 1.0
-        clickableTextField.layer?.borderColor = borderColor.cgColor
+        clickableTextField.layer?.borderColor = ColorService.shared.standardBorderColorCGColor
         clickableTextField.layer?.cornerRadius = 4.0
         
         originalTextContainer.addSubview(clickableTextField)
@@ -551,13 +548,11 @@ class PenWindowService {
         inputComposerContainer.identifier = NSUserInterfaceItemIdentifier("pen_original_text_input")
         inputComposerContainer.isHidden = true
         
-        let borderColor = NSColor(red: 192.0/255.0, green: 192.0/255.0, blue: 192.0/255.0, alpha: 1.0)
-        
         let composerBox = NSView(frame: NSRect(x: 0, y: 0, width: 338, height: 88))
         composerBox.wantsLayer = true
         composerBox.layer?.backgroundColor = NSColor.clear.cgColor
         composerBox.layer?.borderWidth = 1.0
-        composerBox.layer?.borderColor = borderColor.cgColor
+        composerBox.layer?.borderColor = ColorService.shared.standardBorderColorCGColor
         composerBox.layer?.cornerRadius = 4.0
         composerBox.layer?.masksToBounds = true
         
@@ -1131,7 +1126,7 @@ class PenWindowService {
     // MARK: - Text Enhancement Methods
     
     private func enhanceText() async {
-        guard let window = window else { return }
+        guard window != nil else { return }
         
         guard !isEnhancing else {
             print("[PenWindowService] Already enhancing, skipping duplicate request")
