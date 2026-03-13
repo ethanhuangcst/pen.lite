@@ -9,7 +9,7 @@ enum LogLevel: String {
 }
 
 struct Logger {
-    private static let subsystem = "com.pen.lite"
+    private static let subsystem = "com.penai.penlite"
     private static let osLog = OSLog(subsystem: subsystem, category: "App")
     
     private static var isDebugMode: Bool {
