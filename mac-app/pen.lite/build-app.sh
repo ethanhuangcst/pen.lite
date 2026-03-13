@@ -47,6 +47,7 @@ cp Info.plist "${APP_BUNDLE}/Contents/Info.plist"
 echo "Copying resources..."
 cp -R "${RESOURCES_DIR}/Assets" "${APP_BUNDLE}/Contents/Resources/"
 cp -R "${RESOURCES_DIR}/config" "${APP_BUNDLE}/Contents/Resources/"
+cp -R "${RESOURCES_DIR}/prompts" "${APP_BUNDLE}/Contents/Resources/"
 cp -R "${RESOURCES_DIR}/en.lproj" "${APP_BUNDLE}/Contents/Resources/"
 cp -R "${RESOURCES_DIR}/zh-Hans.lproj" "${APP_BUNDLE}/Contents/Resources/"
 

@@ -66,32 +66,21 @@ class InitializationService {
         if !fileStorage.fileExists(at: aiConnectionsFile) {
             Logger.debug("Creating default AI configurations file")
             
-            // Load default AI connections from JSON file
-            var defaultConnections: [AIConnectionModel] = []
-            
             let configPath = ResourceService.shared.getResourcePath(relativePath: "config/default_ai_configurations.json")
             
-            if FileManager.default.fileExists(atPath: configPath) {
-                do {
-                    let data = try Data(contentsOf: URL(fileURLWithPath: configPath))
-                    let decoder = JSONDecoder()
-                    let config = try decoder.decode(DefaultAIConfigurations.self, from: data)
-                    defaultConnections = config.connections
-                    Logger.info("Loaded \(defaultConnections.count) default configurations from JSON")
-                } catch {
-                    Logger.error("Error loading default configurations from JSON: \(error)")
-                    // Fallback to empty array
-                    defaultConnections = []
-                }
-            } else {
-                Logger.warning("default_ai_configurations.json not found at \(configPath)")
+            guard FileManager.default.fileExists(atPath: configPath) else {
+                Logger.error("CRITICAL: default_ai_configurations.json not found at \(configPath)")
+                return
             }
             
             do {
-                try AIConnectionService.shared.saveConnections(defaultConnections)
-                Logger.info("Default AI configurations created successfully")
+                let data = try Data(contentsOf: URL(fileURLWithPath: configPath))
+                let decoder = JSONDecoder()
+                let config = try decoder.decode(DefaultAIConfigurations.self, from: data)
+                try AIConnectionService.shared.saveConnections(config.connections)
+                Logger.info("Loaded \(config.connections.count) default configurations from JSON")
             } catch {
-                Logger.error("Error creating default AI configurations: \(error)")
+                Logger.error("Error loading default configurations from JSON: \(error)")
             }
         } else {
             Logger.debug("AI configurations file already exists, skipping default creation")
@@ -117,9 +106,6 @@ class InitializationService {
                 }
                 Logger.debug("Creating default prompts from bundle")
                 
-                // Load default prompts from Resources/prompts directory
-                var loadedCount = 0
-                
                 let decoder = JSONDecoder()
                 decoder.dateDecodingStrategy = .iso8601
                 
@@ -133,37 +119,19 @@ class InitializationService {
                 for promptFileName in defaultPromptFiles {
                     let promptPath = ResourceService.shared.getResourcePath(relativePath: "prompts/\(promptFileName).json")
                     
-                    if FileManager.default.fileExists(atPath: promptPath) {
-                        do {
-                            let data = try Data(contentsOf: URL(fileURLWithPath: promptPath))
-                            let prompt = try decoder.decode(Prompt.self, from: data)
-                            try PromptService.shared.createPrompt(prompt)
-                            loadedCount += 1
-                            Logger.info("Loaded default prompt: \(prompt.promptName)")
-                        } catch {
-                            Logger.error("Error loading prompt from \(promptFileName).json: \(error)")
-                        }
-                    } else {
-                        Logger.warning("\(promptFileName).json not found at \(promptPath)")
+                    guard FileManager.default.fileExists(atPath: promptPath) else {
+                        Logger.error("CRITICAL: \(promptFileName).json not found at \(promptPath)")
+                        continue
                     }
-                }
-                
-                Logger.info("Loaded \(loadedCount) default prompts from bundle")
-                
-                if loadedCount == 0 {
                     
-                    // Fallback: create a simple default prompt
-                    let fallbackPrompt = Prompt(
-                        id: "default-refine-english",
-                        promptName: "Refine English",
-                        promptText: "You are a professional English editor. Refine the following text while preserving its original meaning.",
-                        createdDatetime: Date(),
-                        updatedDatetime: nil,
-                        systemFlag: "PEN",
-                        isDefault: true
-                    )
-                    
-                    try PromptService.shared.createPrompt(fallbackPrompt)
+                    do {
+                        let data = try Data(contentsOf: URL(fileURLWithPath: promptPath))
+                        let prompt = try decoder.decode(Prompt.self, from: data)
+                        try PromptService.shared.createPrompt(prompt)
+                        Logger.info("Loaded default prompt: \(prompt.promptName)")
+                    } catch {
+                        Logger.error("Error loading prompt from \(promptFileName).json: \(error)")
+                    }
                 }
                 
                 Logger.info("Default prompts created successfully")
