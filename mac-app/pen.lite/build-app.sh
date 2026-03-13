@@ -9,7 +9,7 @@ echo "Building Pen.app..."
 # Configuration
 APP_NAME="Pen Lite"
 EXECUTABLE_NAME="Pen"
-VERSION="1.0.2"
+VERSION="1.0.3"
 BUILD_DIR=".build/release"
 APP_BUNDLE="${APP_NAME}.app"
 RESOURCES_DIR="Resources"
