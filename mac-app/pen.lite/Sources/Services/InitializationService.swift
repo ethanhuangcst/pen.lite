@@ -66,7 +66,7 @@ class InitializationService {
         if !fileStorage.fileExists(at: aiConnectionsFile) {
             Logger.debug("Creating default AI configurations file")
             
-            let configPath = ResourceService.shared.getResourcePath(relativePath: "config/default_ai_configurations.json")
+            let configPath = ResourceService.shared.getResourcePath(relativePath: "ai-config/default-ai-configurations.json")
             
             guard FileManager.default.fileExists(atPath: configPath) else {
                 Logger.error("CRITICAL: default_ai_configurations.json not found at \(configPath)")
