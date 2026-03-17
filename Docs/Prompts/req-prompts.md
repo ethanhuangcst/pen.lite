@@ -70,16 +70,74 @@ Scenario: Edit button is always enabled for any prompt
   When the prompts list loads
   Then the edit button for each prompt should be enabled
 
+## User Story 3: Edit Prompt via Double-Click
+As a Pen user
+I want to edit a prompt by double-clicking it
+So that I can modify the prompt details
+
+### Acceptance Criteria
+
+Scenario: Open edit window on double-click
+  Given the user is using the app
+  And the user navigates to Settings - Prompts tab
+  And there is at least one prompt in the list
+  When the user double-clicks on a row
+  Then the Settings window is hidden
+  And an edit window appears at the exact same position as the Settings window
+  And the edit window contains the prompt data pre-filled with current values
+  And only one edit window can be open at a time
+
+Scenario: Cancel edit without saving
+  Given the edit window is open
+  And the user has modified some fields
+  When the user clicks the Cancel button
+  Then the edit window closes
+  And the Settings window is restored at the same position
+  And no changes are saved
+  And no popup message is displayed
+
+Scenario: Delete prompt from edit window
+  Given the edit window is open for an existing prompt
+  And there are multiple prompts in the list
+  When the user clicks the Delete button
+  Then a confirmation dialog appears
+  And the dialog has Cancel and Delete buttons
+  And the Delete button has a red border
+
+Scenario: Confirm delete from edit window
+  Given the delete confirmation dialog is open
+  When the user clicks the Delete button
+  Then the prompt is deleted
+  And the edit window closes
+  And the Settings window is restored
+  And a success message is displayed
+
+Scenario: Cancel delete from edit window
+  Given the delete confirmation dialog is open
+  When the user clicks the Cancel button
+  Then the dialog closes
+  And the edit window remains open
+
+Scenario: Cannot delete last prompt from edit window
+  Given the edit window is open for an existing prompt
+  And there is only one prompt in the list
+  When the user clicks the Delete button
+  Then an error message should appear indicating "Cannot delete the last prompt"
+  And the prompt should not be deleted
+  And the edit window should remain open
+
 ## Technical Requirements
 
 1. **Prompt Storage**: Prompts are stored as JSON files in ~/Library/Application Support/Pen.Lite/prompts/
 2. **Default Prompts**: Default prompts are loaded from Resources/prompts/ during initialization
 3. **UI Behavior**: 
+   - Double-click on row opens edit window
    - Delete button for the last prompt should be disabled
    - Tooltip should indicate "Cannot delete the last prompt" on hover
-   - Edit button should always be enabled
+   - Cancel button closes window without popup message
 4. **Error Handling**: Attempts to delete the last prompt should be rejected with an appropriate error message
 5. **New User Onboarding**: Default prompts should be automatically created on first launch
+6. **Window Management**: Only one edit window can be open at a time
 
 ## Prompt File Format (JSON)
 

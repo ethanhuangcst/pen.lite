@@ -39,142 +39,126 @@ This document outlines the UI design specifications for the Prompts tab and rela
 - **Border**: 1px light gray (0.3 alpha)
 - **Rows**: 70px height each
 - **Columns**:
-  | Column | Width | Min/Max Width | Description |
-  |--------|-------|---------------|-------------|
-  | Name | 88px | 88px | Read-only, trimmed to 1 line |
-  | Prompt | 288px | 288px | Read-only, trimmed to 3 lines with "..." |
-  | Edit | 38px | 38px | Edit button |
-  | Delete | 38px | 38px | Delete button |
+  | Column | Width | Description |
+  |--------|-------|-------------|
+  | Prompt Name | Full width | Read-only, trimmed to 1 line |
 
-#### Edit Button
-- **Size**: 20x20px
-- **Position**: Centered in edit column
-- **Icon**: edit.svg (18x18px)
-- **Color**: System blue
-- **Behavior**: Opens NewOrEditPrompt window with existing prompt data
-
-#### Delete Button
-- **Size**: 20x20px
-- **Position**: Centered in delete column
-- **Icon**: delete.svg (18x18px)
-- **Color**: System red
-- **Behavior**: Shows delete confirmation dialog
+#### Double-Click Behavior
+- **Action**: Double-click on row opens NewOrEditPrompt window with existing prompt data
+- **Requirement**: Only one NewOrEditPrompt window can be open at a time
 
 #### New Button
 - **Position**: (20, 10)
-- **Size**: 88x32px
+- **Size**: (88, 32)
 - **Text**: "New"
-- **Style**: Rounded bezel, 1px green border, 6px corner radius
-- **Behavior**: Opens NewOrEditPrompt window with empty fields
-
-### 1.3 Delete Confirmation Dialog
-- **Size**: 238x100px
-- **Style**: Borderless window, white background, 12px corner radius
-- **Shadow**: Black with 0.3 alpha, 3px offset, 8px blur
-- **Position**: Bottom-right corner at mouse cursor + 6px
-- **Title**: "Are you sure?"
-- **Buttons**:
-  - **Cancel**: (41, 20), 68x32px, gray border
-  - **Delete**: (129, 20), 68x32px, red border, red text
-- **Behavior**: Closes dialog and deletes prompt when Delete is clicked
+- **Font**: System font, 14pt
+- **Background**: White
+- **Border**: 1px green, rounded corners (6px)
+- **Action**: Opens NewOrEditPrompt window for creating a new prompt
 
 ## 2. NewOrEditPrompt Window
 
 ### 2.1 Layout
-- **Window**: BaseWindow subclass
-- **Size**: 600x518 (matches Preferences window size)
-- **Position**: 28px right and 28px down from originating window
-- **Level**: Modal panel (stays above all other windows)
+- **Window Size**: 600 x 518
+- **Style**: Borderless window with custom title bar
+- **Background**: White (#FFFFFF)
+- **Positioning**: Opens at the same position as the originating window
 
 ### 2.2 UI Elements
 
-#### Title Label
+#### Title
 - **Position**: (70, windowHeight - 55)
 - **Size**: (windowWidth - 90, 30)
 - **Text**: "New Prompt" or "Edit Prompt"
 - **Font**: Bold system font, 18pt
 - **Alignment**: Left
 
-#### Prompt Name Label
-- **Position**: (40, windowHeight - 120)
-- **Size**: (120, 24)
-- **Text**: "Prompt Name"
-- **Font**: System font, 14pt
-- **Alignment**: Right
-
-#### Prompt Name Field
-- **Position**: (160, windowHeight - 120)
-- **Size**: (windowWidth - 200, 24)
-- **Placeholder**: "Enter Prompt Name"
+#### Prompt Name Input
+- **Position**: (40, windowHeight - 102)
+- **Size**: (windowWidth - 80, 24)
 - **Background**: Light gray (0.1 alpha)
-- **Border**: 1px separator color (0.5 alpha), 4px corner radius
-- **Tooltip**: "Enter Prompt Name"
+- **Border**: 1px light gray (0.5 alpha), rounded corners (4px)
+- **Placeholder**: "Enter prompt name"
 
-#### Prompt Label
-- **Position**: (40, windowHeight - 180)
-- **Size**: (120, 24)
-- **Text**: "Prompt"
-- **Font**: System font, 14pt
-- **Alignment**: Right
-
-#### Prompt Text Field
-- **Position**: (160, 120)
-- **Size**: (windowWidth - 200, 240)
+#### Prompt Text Area
+- **Position**: (40, 64)
+- **Size**: (520, 338)
 - **Background**: Light gray (0.1 alpha)
-- **Border**: 1px separator color (0.5 alpha), 4px corner radius
-- **Tooltip**: "Markdown format recommended for your prompt"
+- **Border**: 1px light gray (0.5 alpha), rounded corners (4px)
+- **Placeholder**: "Markdown format recommended"
 - **Font**: System font, 14pt
-- **Behavior**: Multi-line with scroll view
+- **Scrollable**: Vertical scroller auto-shown for overflow text
 
-#### Save Button
-- **Position**: (windowWidth - 120, 40)
-- **Size**: 100x32px
-- **Text**: "Save"
-- **Style**: Rounded bezel
-- **Behavior**: Validates fields, saves prompt, shows success message, closes window
+#### Default Prompt Checkbox
+- **Position**: (40, 26)
+- **Size**: (200, 32)
+- **Text**: "Set as default prompt"
+- **Style**: Checkbox (switch button)
+- **Default State**: Off
 
-#### Cancel Button
-- **Position**: (windowWidth - 240, 40)
-- **Size**: 100x32px
-- **Text**: "Cancel"
-- **Style**: Rounded bezel
-- **Behavior**: Shows cancel message, closes window
-
-#### Close Button
-- **Position**: (windowWidth - 30, windowHeight - 30)
-- **Size**: 20x20px
-- **Icon**: System "xmark"
-- **Behavior**: Shows cancel message, closes window
-
-### 2.3 Popup Messages
-- **Create New Prompt Canceled**: "Create new prompt canceled, all changes discarded"
-- **Edit Prompt Canceled**: "Edit prompt canceled, all changes discarded"
-- **Prompt Created Successfully**: "Prompt created successfully"
-- **Prompt Updated Successfully**: "Prompt updated successfully"
-
-## 3. Styling Guidelines
-
-### 3.1 Colors
-- **Background**: White (#FFFFFF)
-- **Text**: System text color
-- **Secondary Text**: Secondary label color
-- **Borders**: Light gray (with alpha for subtlety)
-- **Buttons**:
-  - New: Green border
-  - Delete: Red border and text
+#### Buttons
+- **Position**: Bottom right corner
+- **Size**: 68 x 32 each
+- **Spacing**: 20px between buttons
+- **Background**: White
+- **Borders**:
+  - Delete: Red border (only visible in edit mode)
   - Cancel: Gray border
-  - Save: Default system button style
+  - Save: Green border
+- **Buttons**:
+  - **Delete**: (x, 26) - Red border, red text - only visible when editing existing prompt
+  - **Cancel**: (x, 26) - Gray border
+  - **Save**: (x, 26) - Green border
 
-### 3.2 Typography
+### 2.3 Typography
 - **Headings**: Bold system font, 16-18pt
 - **Labels**: System font, 14pt
 - **Small Text**: System font, 12pt
 - **Input Fields**: System font, 14pt
 
-### 3.3 Icons
-- **Edit**: edit.svg (18x18px)
-- **Delete**: delete.svg (18x18px)
-- **No background** on buttons, just the icon
+### 2.4 Behavior
+- **Modal Window**: NewOrEditPrompt opens as a modal window, blocking interaction with other windows
+- **Window Positioning**: NewOrEditPrompt positions itself relative to the originating window
+- **Text Truncation**: Prompt text is trimmed to 3 lines with "..." for readability
+- **Tooltips**: Full text is shown on hover for truncated fields
+- **Popup Messages**: Used for user feedback on actions
+- **Delete Confirmation**: Required for deleting prompts to prevent accidental actions
+
+## 3. Delete Confirmation Dialog
+
+### 3.1 Layout
+- **Window Size**: 238 x 100
+- **Style**: Borderless window
+- **Background**: White (#FFFFFF)
+- **Positioning**: Opens near mouse cursor
+
+### 3.2 UI Elements
+
+#### Title
+- **Position**: (20, 60)
+- **Size**: (198, 20)
+- **Text**: "Are you sure?"
+- **Font**: Bold system font, 16pt
+- **Alignment**: Center
+
+#### Buttons
+- **Cancel Button**:
+  - **Position**: (41, 20)
+  - **Size**: (68, 32)
+  - **Text**: "Cancel"
+  - **Border**: Gray border, rounded corners (6px)
+- **Delete Button**:
+  - **Position**: (129, 20)
+  - **Size**: (68, 32)
+  - **Text**: "Delete"
+  - **Border**: Red border, rounded corners (6px)
+  - **Text Color**: Red
+
+### 3.3 Behavior
+- **Triggered**: When Delete button is clicked in NewOrEditPrompt window
+- **Positioning**: Opens at mouse cursor position + 6px offset
+- **Cancel**: Closes dialog, keeps edit window open
+- **Delete**: Closes dialog, closes edit window, deletes prompt, shows success message
 
 ## 4. Internationalization
 - All text elements use LocalizationService for i18n support
@@ -182,9 +166,6 @@ This document outlines the UI design specifications for the Prompts tab and rela
 - Key localization strings include:
   - "first_prompt_default"
   - "prompt_name_column"
-  - "prompt_text_column"
-  - "edit_button"
-  - "delete_button"
   - "new_prompt_title"
   - "edit_prompt_title"
   - "prompt_name_label"
@@ -192,10 +173,14 @@ This document outlines the UI design specifications for the Prompts tab and rela
   - "prompt_label"
   - "save_button"
   - "cancel_button"
+  - "delete_button"
   - "create_new_prompt_canceled"
   - "edit_prompt_canceled"
   - "prompt_created_successfully"
   - "prompt_updated_successfully"
+  - "prompt_deleted_successfully"
+  - "are_you_sure"
+  - "cannot_delete_last_prompt"
 
 ## 5. Behavior
 - **Modal Window**: NewOrEditPrompt opens as a modal window, blocking interaction with other windows
@@ -204,9 +189,13 @@ This document outlines the UI design specifications for the Prompts tab and rela
 - **Tooltips**: Full text is shown on hover for truncated fields
 - **Popup Messages**: Used for user feedback on actions
 - **Delete Confirmation**: Required for deleting prompts to prevent accidental actions
+- **Cancel Button**: Closes window without popup message (consistent with AI Configuration tab)
 
 ## 6. Consistency
 - Follows the same design patterns as AIConfigurationTabView
 - Uses the same button styles, sizes, and positioning
 - Maintains consistent spacing and alignment across components
 - Shares the same modal window behavior and popup message system
+- Double-click to edit (consistent with AI Configuration tab)
+- Delete button in edit window (consistent with AI Configuration tab)
+- Cancel button closes without popup (consistent with AI Configuration tab)
