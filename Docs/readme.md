@@ -1,10 +1,13 @@
-# Pen Docs
-## Product information
-Pen is an AI powered product that helps you to write better.
-It is a native Mac app built with AppKit that connects directly to a MySQL database.
+# Pen Lite Documentation
+
+## Product Information
+
+Pen Lite is an AI-powered writing assistant that helps you write better.
+It is a native Mac app built with AppKit that runs entirely offline - no database, no user accounts, no internet required for core functionality.
+
 The Mac app has two main interfaces:
-1. The management interface (Preferences window) - native AppKit views for managing account settings, AI connections, prompts, and history.
-2. The main Pen window - where you can use AI to help you write better by processing text from clipboard.
+1. **The Settings window** - Native AppKit views for managing AI connections and prompts
+2. **The Pen window** - Where you can use AI to help you write better by processing text from clipboard
 
 ## Architecture
 
@@ -12,12 +15,9 @@ The Mac app has two main interfaces:
 
 | Component | Technology | Rationale |
 |-----------|------------|-----------|
-| **Mac App** | Swift + AppKit | Native Mac development with traditional Cocoa framework; integrates with macOS menu bar and right-click menus. |
-| **Backend API** | Node.js (NestJS) + TypeScript | Minimal backend for optional future expansion; currently most operations go directly to MySQL. |
-| **Database** | MySQL 8 (AliCloud RDS) | Structured schema for user accounts, settings, AI model configurations, prompts, and content history. |
-| **AI Integration** | Multi-Provider Client (OpenAI/DeepSeek/Qwen) | Direct AI provider integration from Mac app with unified interface. |
-| **Cloud Hosting** | AliCloud (RDS) | RDS for managed MySQL database. |
-| **Authentication** | Direct Database + BCrypt | Password hashing with BCrypt; direct database authentication. |
+| **Mac App** | Swift + AppKit | Native Mac development with traditional Cocoa framework; integrates with macOS menu bar |
+| **AI Integration** | Multi-Provider Client (OpenAI/DeepSeek/Qwen) | Direct AI provider integration from Mac app with unified interface |
+| **Data Storage** | Local JSON Files | All data stored locally in `~/Library/Application Support/Pen.Lite/` |
 
 ### Architecture Diagram
 
@@ -27,48 +27,43 @@ flowchart TD
         A["Swift/AppKit App"]
         B["Menu Bar Icon (NSStatusItem)"]
         C["Main Pen Window"]
-        D["Preferences Window"]
-    end
-
-    subgraph "Database"
-        I["MySQL 8 (AliCloud RDS)"]
+        D["Settings Window"]
+        E["Local JSON Storage"]
     end
 
     subgraph "External Services"
         J["AI Providers (OpenAI/DeepSeek/Qwen)"]
-        K["Email Service (SMTP)"]
     end
 
     A --> B
     A --> C
     A --> D
-    C --> I
-    D --> I
+    C --> E
+    D --> E
     C --> J
-    A --> K
 ```
 
 ### Key Architectural Decisions
 
 1. **Native Mac App (AppKit, not SwiftUI)**
    - Traditional Cocoa framework for maximum control and compatibility
-   - Direct MySQL database connection for simplicity and performance
-   - No intermediate backend API layer for most operations
+   - No backend server required
+   - All data stored locally on the user's Mac
 
-2. **Direct Database Connection**
-   - Mac app connects directly to MySQL via `DatabaseConnectivityPool`
-   - Reduces latency and infrastructure complexity
-   - All user data, AI connections, prompts stored in MySQL
+2. **Offline-First Design**
+   - No user accounts or authentication required
+   - No database connection needed
+   - Works without internet (except for AI calls)
 
-3. **Multi-AI Provider Integration**
+3. **Local Data Storage**
+   - AI connections stored in `~/Library/Application Support/Pen.Lite/config/ai-connections.json`
+   - Prompts stored in `~/Library/Application Support/Pen.Lite/prompts/`
+   - Default configurations bundled with the app
+
+4. **Multi-AI Provider Integration**
    - `AIManager.swift` provides unified interface for multiple AI providers
-   - Supports GPT-4o-mini, DeepSeek 3.2, Qwen-Plus
+   - Supports GPT, DeepSeek, Qwen, and custom providers
    - Extensible architecture for adding new AI models
-
-4. **Security**
-   - BCrypt password hashing
-   - AI provider API keys stored in database
-   - Keychain integration for sensitive data
 
 5. **Internationalization (i18n) Support**
    - `.strings` files in `en.lproj/` and `zh-Hans.lproj/`
@@ -79,89 +74,46 @@ flowchart TD
 
 1. **User Triggers AI Help**
    - User copies text to clipboard
-   - Opens Pen window via menu bar icon or keyboard shortcut
+   - Opens Pen window via menu bar icon
    - Text is automatically retrieved from clipboard
    - User selects prompt and AI provider
 
 2. **Processing**
-   - `AIManager` fetches user's API key from database
+   - `AIManager` loads API key from local storage
    - Constructs request with selected prompt template
    - Calls AI provider API directly
 
-3. **Response & Storage**
+3. **Response**
    - AI provider returns generated text
    - Response displayed in Pen window
-   - Enhancement saved to `content_history` table
+   - User can copy the enhanced text
 
-### Database Schema
+### Local Storage Structure
 
-```sql
--- Users Table
-CREATE TABLE users (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(255),
-    email VARCHAR(255) UNIQUE NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
-    profile_image LONGBLOB,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    system_flag VARCHAR(50),
-    pen_content_history INT DEFAULT 40
-);
+```
+~/Library/Application Support/Pen.Lite/
+├── config/
+│   └── ai-connections.json    # User's AI provider configurations
+└── prompts/
+    ├── *.json                  # User's custom prompts
+    └── ...
+```
 
--- AI Providers Table (system-level)
-CREATE TABLE ai_providers (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(50) UNIQUE NOT NULL,
-    base_urls JSON NOT NULL,
-    default_model VARCHAR(100),
-    requires_auth BOOLEAN DEFAULT TRUE,
-    auth_header VARCHAR(50) DEFAULT 'Authorization',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
+### Default Configurations
 
--- AI Connections Table (user-level)
-CREATE TABLE ai_connections (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    user_id INT REFERENCES users(id),
-    provider_id INT REFERENCES ai_providers(id),
-    api_key VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
+The app comes with default configurations bundled in the app:
 
--- Prompts Table
-CREATE TABLE prompts (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    user_id INT REFERENCES users(id),
-    name VARCHAR(100) NOT NULL,
-    text TEXT NOT NULL,
-    is_default BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
-
--- Content History Table
-CREATE TABLE content_history (
-    uuid VARCHAR(36) PRIMARY KEY,
-    user_id INT REFERENCES users(id),
-    enhanced_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    content_original TEXT,
-    content_enhanced TEXT,
-    prompt_text TEXT,
-    ai_provider VARCHAR(50)
-);
-
--- System Config Table
-CREATE TABLE system_config (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    config_key VARCHAR(100) UNIQUE NOT NULL,
-    config_value TEXT NOT NULL,
-    description VARCHAR(255),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
+```
+Pen Lite.app/Contents/Resources/
+├── ai-config/
+│   └── default-ai-configurations.json    # Default AI providers
+├── prompts/
+│   ├── default-refine-english.json       # Default prompts
+│   ├── default-translator.json
+│   └── default-prompt-creator.json
+├── Assets/
+├── en.lproj/
+└── zh-Hans.lproj/
 ```
 
 ### Deployment
@@ -169,5 +121,4 @@ CREATE TABLE system_config (
 | Service | Configuration |
 |---------|---------------|
 | **Mac App** | Distributed as .dmg file; runs locally on user's Mac |
-| **Database** | AliCloud RDS MySQL 8.0; managed service |
-| **Email** | SMTP service for password reset emails |
+| **AI Providers** | User's own API keys for OpenAI, DeepSeek, Qwen, etc. |

@@ -9,25 +9,6 @@ The Pen window is a compact, focused UI for the Pen AI application, featuring a 
 
 ## UI Components
 
-define container view in Pen window:
-### identifier = pen_userlabel
-### size = 120x30
-### background = transparent
-### coordinate = 232, 359
-### user profile image thumbnail 
-#### identifier = pen_userlabel_img
-#### image = user profile image
-#### size = 20x20
-#### coordinate = 0, 0, relative position
-### user name text label
-#### identifier = pen_userlable_text
-#### font = Pen global font, size = 12, bold
-#### size = 90x30
-#### coordinate = 26, -13, relative position
-#### text = user name, trimed to fit width
-#### support i18n
-
-
 ### Enhanced Text Container
 - **Size**: 338px (width) × 198px (height)
 - **Position**: (20, 30) from the bottom-left corner of the window
@@ -52,15 +33,6 @@ define container view in Pen window:
 - **Position**: (0, 0) from the bottom-left corner of the window
 - **Background**: Transparent
 - **Identifier**: `pen_footer`
-
-### Footer Instruction
-- **Content**: "Hot key: [shortcut]" (localized)
-- **Font**: System font, 12pt
-- **Color**: Secondary label color
-- **Alignment**: Left
-- **Position**: (44, 23) absolute (relative to window bottom-left)
-- **Identifier**: `pen_footer_instruction`
-- **Localization**: Uses `pen_footer_instruction` key in Localizable.strings
 
 ### Footer Text
 - **Content**: " Pen " (with spaces around "Pen")
@@ -102,7 +74,7 @@ define container view in Pen window:
   - On = Auto mode (`pen_original_text_text` visible)
   - Off = Manual mode (`pen_original_text_input` visible)
 - **Persistence**:
-  - Selected mode is persisted across logout/login and app restart
+  - Selected mode is persisted across app restart
   - Invalid stored mode falls back to Auto mode
 
 ### Controller Container
@@ -217,8 +189,6 @@ define container view in Pen window:
 
 ## Code References
 - **Footer Creation**: `addFooterContainer` method in `Pen.swift`
-- **Localization String**: `pen_footer_shortcut` in `Localizable.strings`
-
 
 ### Loading Indicator Container
 - **Size**: 338px (width) × 198px (height)
@@ -302,7 +272,7 @@ The floating message is a temporary notification that appears when the applicati
 - **Level**: Floating (above other windows)
 
 ### Floating Message Text
-- **Content**: "Hello, [user name], I'm Pen, your AI writing assistant."
+- **Content**: "Hello, I'm Pen, your AI writing assistant."
 - **Font**: System font, 14pt
 - **Color**: White
 - **Alignment**: Center
@@ -335,6 +305,6 @@ DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
 ```
 
 ### Integration Points
-- **Show**: In the initialization process after successful login
-- **Content**: Uses localized string with user name format
+- **Show**: In the initialization process after app launches
+- **Content**: Uses localized string
 - **Positioning**: Calculated relative to the menu bar icon

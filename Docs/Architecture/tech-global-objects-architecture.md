@@ -1,6 +1,6 @@
 # Global Objects Architecture
 
-This document describes the global objects and singleton services used in the Pen AI application.
+This document describes the global objects and singleton services used in the Pen Lite application.
 
 ## Singleton Objects
 
@@ -8,25 +8,20 @@ This document describes the global objects and singleton services used in the Pe
 
 | Object Name | Location | Purpose |
 |------------|----------|--------|
-| `UserService.shared` | Sources/Services/UserService.swift | Core user state management - current user info, login status, preferences |
-| `AuthenticationService.shared` | Sources/Services/AuthenticationService.swift | Handles user authentication, login, logout, and password reset |
-| `DatabaseConnectivityPool.shared` | Sources/Services/DatabaseConnectivityPool.swift | Central database connection management and pooling |
-| `DatabaseConfig.shared` | Sources/Services/DatabaseConfig.swift | Single source of database configuration |
 | `KeychainService.shared` | Sources/Services/KeychainService.swift | Secure credential storage for sensitive data |
 | `LocalizationService.shared` | Sources/Services/LocalizationService.swift | Global resource for UI localization and language switching |
+| `FileStorageService.shared` | Sources/Services/FileStorageService.swift | Local file storage management |
+| `ResourceService.shared` | Sources/Services/ResourceService.swift | App bundle resource access |
 
 ### Feature Services (Instantiated Per Use)
 
 | Object Name | Location | Purpose |
 |------------|----------|--------|
-| `AIManager.shared` | Sources/Services/AIManager.swift | Manages AI configurations and API calls |
+| `AIConnectionService.shared` | Sources/Services/AIConnectionService.swift | Manages AI configurations and API calls |
 | `PenWindowService.shared` | Sources/Services/PenWindowService.swift | Manages the Pen application window |
-| `PromptsService.shared` | Sources/Services/PromptsService.swift | Manages user prompts CRUD operations |
-| `ShortcutService.shared` | Sources/Services/ShortcutService.swift | Manages keyboard shortcuts |
-| `ContentHistoryService.shared` | Sources/Services/ContentHistoryService.swift | Manages content enhancement history |
+| `PromptService.shared` | Sources/Services/PromptService.swift | Manages user prompts CRUD operations |
 | `SystemConfigService.shared` | Sources/Services/SystemConfigService.swift | System configuration values |
 | `ColorService.shared` | Sources/Services/ColorService.swift | UI color management for light/dark mode |
-| `EmailService.shared` | Sources/Services/EmailService.swift | Email sending for password reset |
 | `InitializationService.shared` | Sources/Services/InitializationService.swift | App initialization and startup logic |
 | `InternetConnectivityServiceTest.shared` | Sources/Services/InternetConnectivityServiceTest.swift | Tests internet connectivity |
 
@@ -43,20 +38,14 @@ This document describes the global objects and singleton services used in the Pe
 
 The application uses a combination of singleton services to manage global state:
 
-### User State
-Managed by `UserService.shared`
-- Current user information
-- Login status
-- User preferences
-
 ### AI Configuration State
-Managed by `AIManager.shared`
+Managed by `AIConnectionService.shared`
 - AI provider configurations
 - API keys
 - Connection status
 
 ### Prompt State
-Managed by `PromptsService.shared`
+Managed by `PromptService.shared`
 - User prompts
 - System prompts
 - Default prompts
@@ -66,20 +55,18 @@ Managed by `PenWindowService.shared`
 - Window position and visibility
 - UI component states
 
-### Database State
-Managed by `DatabaseConnectivityPool.shared`
-- Database connections
-- Connection pool management
+### File Storage State
+Managed by `FileStorageService.shared`
+- Local file paths
+- Directory management
 
 ## Architecture Decisions
 
 ### Why Singletons?
 
-1. **Core Services** - Services like `UserService`, `AuthenticationService`, and `DatabaseConnectivityPool` need to maintain state across the entire application lifecycle and are accessed from multiple components.
+1. **Core Services** - Services like `LocalizationService` and `FileStorageService` provide configuration and resources that should have a single source of truth.
 
-2. **Configuration Services** - `DatabaseConfig`, `LocalizationService`, and `KeychainService` provide configuration and resources that should have a single source of truth.
-
-3. **Feature Services** - Services like `AIManager`, `PromptsService`, and `PenWindowService` use singletons for convenience but could be refactored to dependency injection if needed.
+2. **Feature Services** - Services like `AIConnectionService`, `PromptService`, and `PenWindowService` use singletons for convenience but could be refactored to dependency injection if needed.
 
 ### Design Considerations
 
@@ -94,11 +81,10 @@ Global objects are accessed using the singleton pattern:
 
 ```swift
 // Accessing a singleton service
-let user = UserService.shared.currentUser
-let prompts = PromptsService.shared.prompts
+let prompts = PromptService.shared.getPrompts()
 
 // Calling singleton methods
-AIManager.shared.callAI(prompt: "Hello")
+AIConnectionService.shared.callAI(prompt: "Hello")
 
 // Setting global state
 LocalizationService.shared.setLanguage(.chineseSimplified)
@@ -107,14 +93,15 @@ LocalizationService.shared.setLanguage(.chineseSimplified)
 ## Service Dependencies
 
 ```
-UserService
-    └── AIManager (per user session)
-    └── PromptsService (per user session)
+AIConnectionService
+    └── FileStorageService (for loading configurations)
+
+PromptService
+    └── FileStorageService (for loading prompts)
 
 PenWindowService
-    └── depends on UserService
-    └── depends on AIManager
-    └── depends on PromptsService
+    └── depends on AIConnectionService
+    └── depends on PromptService
 
 InitializationService
     └── orchestrates all services during app startup

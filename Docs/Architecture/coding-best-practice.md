@@ -1,13 +1,13 @@
-# Pen.ai Coding Best Practices
+# Pen Lite Coding Best Practices
 
-> A comprehensive guide for developers working on the Pen.ai project, documenting best practices, anti-patterns, and lessons learned from real project experience.
+> A comprehensive guide for developers working on the Pen Lite project, documenting best practices, anti-patterns, and lessons learned from real project experience.
 
 ---
 
 ## Purpose
 
 This document serves as:
-1. **A coding standard** for the Pen.ai development team
+1. **A coding standard** for the Pen Lite development team
 2. **A knowledge base** of lessons learned from real debugging sessions
 3. **A reference** for onboarding new developers
 4. **A skill file** that can be used directly as SKILL.md for AI assistants
@@ -21,17 +21,16 @@ This document serves as:
 | Pattern | Example | Purpose |
 |---------|---------|---------|
 | `tmp-*` | `tmp-test-connection.swift` | Temporary test files, should be deleted |
-| `test-*.swift` | `test-history-load.swift` | Standalone test scripts |
-| `check-*.swift` | `check-users-table.swift` | Database inspection scripts |
-| `Test*.swift` | `TestHistoryLoad.swift` | Unit test files (in Tests directory) |
+| `test-*.swift` | `test-connection.swift` | Standalone test scripts |
+| `Test*.swift` | `TestConnection.swift` | Unit test files (in Tests directory) |
 
 ### Source Files
 
 | Category | Naming Pattern | Example |
 |----------|---------------|---------|
-| Models | `*Model.swift` | `ContentHistoryModel.swift` |
-| Services | `*Service.swift` | `UserService.swift` |
-| Views | `*View.swift` or `*Window.swift` | `LoginWindow.swift` |
+| Models | `*Model.swift` | `AIConnectionModel.swift` |
+| Services | `*Service.swift` | `PromptService.swift` |
+| Views | `*View.swift` or `*Window.swift` | `SettingsWindow.swift` |
 | Controllers | `*Controller.swift` | (Avoid if possible, use MVVM) |
 
 ### Documentation Files
@@ -51,8 +50,8 @@ This document serves as:
 
 ```swift
 // ✅ Good: Structured log with context
-print("[ContentHistoryService] Loading history for user: \(userID)")
-print("[MySQLConnection] Query returned \(rows.count) rows")
+print("[PromptService] Loading prompts from local storage")
+print("[AIConnectionService] Loaded \(connections.count) connections")
 print("[PenWindowService] Clipboard content unchanged, skipping enhancement")
 
 // ❌ Bad: Unstructured logs
@@ -75,95 +74,84 @@ print("here")
 
 ```swift
 // Development: Verbose logging for debugging
-print("[ContentHistoryService] DEBUG: Row keys: \(row.keys)")
+print("[PromptService] DEBUG: Prompt keys: \(prompt.keys)")
 
 // Production: Essential logs only
-print("[ContentHistoryService] Loaded \(count) history items")
+print("[PromptService] Loaded \(count) prompts")
 ```
 
 ### Critical Debug Points
 
 Always add logs at:
-1. **Database queries** - Print query and parameters
+1. **File operations** - Print file paths and results
 2. **Async operations** - Print start/end
 3. **Error handling** - Print error details
 4. **State changes** - Print before/after values
 
 ```swift
 // ✅ Good: Comprehensive logging for debugging
-func loadHistoryByUserID(userID: Int, count: Int) async -> Result<[ContentHistoryModel], Error> {
-    print("========== ContentHistoryService.loadHistoryByUserID START ==========")
-    print("[ContentHistoryService] userID: \(userID), count: \(count)")
+func loadPrompts() -> [Prompt] {
+    print("========== PromptService.loadPrompts START ==========")
     
     do {
-        let query = "SELECT * FROM content_history WHERE user_id = ?"
-        print("[ContentHistoryService] Executing query: \(query)")
+        let promptsDirectory = fileStorage.getPromptsDirectory()
+        print("[PromptService] Loading from: \(promptsDirectory)")
         
-        let result = try await connection.execute(query: query, parameters: parameters)
-        print("[ContentHistoryService] Query returned \(result.count) rows")
+        let files = try FileManager.default.contentsOfDirectory(atPath: promptsDirectory)
+        print("[PromptService] Found \(files.count) files")
         
-        return .success(historyItems)
+        return prompts
     } catch {
-        print("[ContentHistoryService] ERROR: \(error)")
-        return .failure(error)
+        print("[PromptService] ERROR: \(error)")
+        return []
     }
     
-    print("========== ContentHistoryService.loadHistoryByUserID END ==========")
+    print("========== PromptService.loadPrompts END ==========")
 }
 ```
 
 ---
 
-## Database Column Naming
+## JSON File Naming
 
-### Critical Rule: Match Model Properties to Database Columns
+### Critical Rule: Match Model Properties to JSON Keys
 
 ```swift
-// ✅ Good: Property names match database columns exactly
-class ContentHistoryModel {
-    let enhanceDateTime: Date      // DB: enhance_datetime
-    let originalContent: String    // DB: original_content
-    let enhancedContent: String    // DB: enhanced_content
-    let aiProvider: String         // DB: ai_provider
+// ✅ Good: Property names match JSON keys exactly
+struct AIConnectionModel: Codable {
+    let id: String              // JSON: "id"
+    let apiProvider: String     // JSON: "apiProvider"
+    let apiKey: String          // JSON: "apiKey"
+    let apiUrl: String          // JSON: "apiUrl"
+    let model: String           // JSON: "model"
+    let isDefault: Bool         // JSON: "isDefault"
 }
 
-// ❌ Bad: Different names cause confusion and bugs
-class ContentHistoryModel {
-    let enhancementTime: Date      // DB: enhance_datetime - MISMATCH!
-    let inputText: String          // DB: original_content - MISMATCH!
-    let outputText: String         // DB: enhanced_content - MISMATCH!
+// ❌ Bad: Different names cause decoding failures
+struct AIConnectionModel: Codable {
+    let identifier: String      // JSON: "id" - MISMATCH!
+    let provider: String        // JSON: "apiProvider" - MISMATCH!
 }
 ```
 
-### Naming Convention
+### When Creating JSON Files
 
-| Database Column | Swift Property | Reason |
-|-----------------|----------------|--------|
-| `enhance_datetime` | `enhanceDateTime` | snake_case → camelCase |
-| `user_id` | `userID` | Consistent transformation |
-| `created_at` | `createdAt` | Standard timestamp naming |
-| `updated_at` | `updatedAt` | Standard timestamp naming |
-
-### When Extracting from Database
-
-```swift
-// ✅ Good: Use exact column names
-if let enhanceDatetimeData = row.column("enhance_datetime") {
-    rowData["enhance_datetime"] = enhanceDatetimeData
+```json
+// ✅ Good: All required fields present
+{
+  "id": "default-qwen",
+  "apiProvider": "qwen",
+  "apiKey": "sk-xxx",
+  "apiUrl": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+  "model": "qwen-plus",
+  "isDefault": true
 }
 
-// ❌ Bad: Using wrong column name
-if let enhanceDatetimeData = row.column("enhancement_time") {  // Column doesn't exist!
-    rowData["enhance_datetime"] = enhanceDatetimeData
-}
-```
-
-### Debug Technique: Print Available Columns
-
-```swift
-// Always verify available columns when debugging
-if let firstRow = result.first {
-    print("[DEBUG] Available columns: \(firstRow.keys)")
+// ❌ Bad: Missing required field causes decoding failure
+{
+  "apiProvider": "qwen",
+  "apiKey": "sk-xxx",
+  // Missing "id" field!
 }
 ```
 
@@ -176,10 +164,10 @@ if let firstRow = result.first {
 ```swift
 // ✅ Good: Small, focused functions
 func initiatePen() async {
-    await loadUserInformation()
     await initializeUIComponents()
     await loadAIConfigurations()
-    await loadClipboardAndEnhance()
+    await loadPrompts()
+    await loadClipboardContent()
 }
 
 // ❌ Bad: One giant function doing everything
@@ -219,15 +207,15 @@ func enhanceText() async {
 
 ```swift
 // ✅ Good: Each function does one thing
-func loadUserInformation() async { ... }
 func initializeUIComponents() { ... }
 func loadAIConfigurations() async { ... }
+func loadPrompts() -> [Prompt] { ... }
 
 // ❌ Bad: Function does multiple unrelated things
 func loadDataAndSetupUI() async {
-    // Loads user data
+    // Loads AI configurations
     // Sets up UI
-    // Configures AI
+    // Loads prompts
     // Monitors clipboard
 }
 ```
@@ -305,16 +293,15 @@ func initiatePen() async {
 ```swift
 // ✅ Good: Detailed error context
 catch {
-    print("[ContentHistoryService] Error loading history: \(error)")
-    print("[ContentHistoryService] Query: \(query)")
-    print("[ContentHistoryService] Parameters: \(parameters)")
+    print("[PromptService] Error loading prompts: \(error)")
+    print("[PromptService] Directory: \(promptsDirectory)")
     fflush(stdout)
-    return .failure(error)
+    return []
 }
 
 // ❌ Bad: Silent failure
 catch {
-    return .failure(error)
+    return []
 }
 ```
 
@@ -322,19 +309,19 @@ catch {
 
 ```swift
 // ✅ Good: Use Result type for async operations
-func loadHistoryByUserID(userID: Int) async -> Result<[ContentHistoryModel], Error> {
+func loadPrompts() -> Result<[Prompt], Error> {
     do {
-        let items = try await fetchItems()
-        return .success(items)
+        let prompts = try fetchPrompts()
+        return .success(prompts)
     } catch {
         return .failure(error)
     }
 }
 
 // Usage:
-let result = await service.loadHistoryByUserID(userID: 4)
+let result = promptService.loadPrompts()
 switch result {
-case .success(let items):
+case .success(let prompts):
     // Handle success
 case .failure(let error):
     // Handle error
@@ -347,24 +334,24 @@ case .failure(let error):
 
 ### Mistakes Made in This Project
 
-#### 1. Database Column Name Mismatches
+#### 1. JSON Field Missing
 
-**Problem**: Model properties used different names than database columns.
+**Problem**: JSON file missing required field caused silent decoding failure.
 
 ```swift
 // ❌ What we did wrong
-// Model used: enhancementTime, inputText, outputText
-// Database had: enhance_datetime, original_content, enhanced_content
-// Result: 8+ hours debugging why data wasn't loading
+// JSON file had no "id" field
+// Model required "id" field
+// Result: AI configurations not created on fresh install
 ```
 
-**Solution**: Always match model properties to database columns exactly.
+**Solution**: Always verify JSON files have all required fields matching the model.
 
 ---
 
 #### 2. Concurrent Enhancement Calls
 
-**Problem**: Multiple `Task { await enhanceText() }` blocks created duplicate records.
+**Problem**: Multiple `Task { await enhanceText() }` blocks created duplicate operations.
 
 ```swift
 // ❌ What caused the bug
@@ -388,21 +375,7 @@ func initiatePen() async {
 
 ---
 
-#### 4. Date Format Parsing Failures
-
-**Problem**: MySQL datetime format `2026-03-03 14:50:15 +0000` had a space before timezone.
-
-```swift
-// ❌ Failed to parse
-formatter.dateFormat = "yyyy-MM-dd HH:mm:ssZ"
-// Input: "2026-03-03 14:50:15 +0000"  // Space before +0000
-```
-
-**Solution**: Remove space before timezone offset before parsing.
-
----
-
-#### 5. Unstructured Debug Logs
+#### 4. Unstructured Debug Logs
 
 **Problem**: Logs like `print("here")`, `print("error")` made debugging impossible.
 
@@ -428,11 +401,11 @@ let frame = NSRect(x: spacing, y: 228, width: 338, height: controllerHeight)
 
 ```swift
 // ❌ Bad
-let query = "SELECT * FROM content_history WHERE user_id = ?"
+let fileName = "default-ai-configurations.json"
 
 // ✅ Good
-let tableName = "content_history"
-let query = "SELECT * FROM \(tableName) WHERE user_id = ?"
+let configFileName = "default-ai-configurations"
+let fileName = "\(configFileName).json"
 ```
 
 #### Ignoring Optional Safety
@@ -487,12 +460,12 @@ Sources/
 ```swift
 // ✅ Good: Dependencies injected
 class PenWindowService {
-    private let userService: UserService
-    private let promptsService: PromptsService
+    private let promptService: PromptService
+    private let aiConnectionService: AIConnectionService
     
-    init(userService: UserService, promptsService: PromptsService) {
-        self.userService = userService
-        self.promptsService = promptsService
+    init(promptService: PromptService, aiConnectionService: AIConnectionService) {
+        self.promptService = promptService
+        self.aiConnectionService = aiConnectionService
     }
 }
 ```
@@ -500,29 +473,29 @@ class PenWindowService {
 ### Protocol-Oriented Design
 
 ```swift
-// ✅ Good: Protocol for database connections
-protocol DatabaseConnection {
-    func execute(query: String, parameters: [MySQLData]) async throws -> [[String: Any]]
-    func beginTransaction() async throws
-    func commitTransaction() async throws
+// ✅ Good: Protocol for file storage
+protocol FileStorage {
+    func getPromptsDirectory() -> String
+    func getAIConnectionsFile() -> String
+    func createDirectories() -> Bool
 }
 
-class MySQLConnection: DatabaseConnection { ... }
+class LocalFileStorage: FileStorage { ... }
 ```
 
 ### Testing Practices
 
 ```swift
 // Test file naming: <Class>Tests.swift
-class ContentHistoryServiceTests: XCTestCase {
-    var sut: ContentHistoryService!
+class PromptServiceTests: XCTestCase {
+    var sut: PromptService!
     
     override func setUp() {
-        sut = ContentHistoryService()
+        sut = PromptService()
     }
     
-    func testLoadHistoryReturnsCorrectCount() async {
-        let result = await sut.loadHistoryByUserID(userID: 1, count: 10)
+    func testLoadPromptsReturnsCorrectCount() {
+        let prompts = sut.getPrompts()
         // Assert...
     }
 }
@@ -534,7 +507,7 @@ class ContentHistoryServiceTests: XCTestCase {
 
 Before submitting code, verify:
 
-- [ ] **Naming**: Do model properties match database columns?
+- [ ] **Naming**: Do model properties match JSON keys?
 - [ ] **Logging**: Are logs structured with prefixes?
 - [ ] **Concurrency**: Are there guards against concurrent execution?
 - [ ] **Error Handling**: Are errors logged with context?
@@ -552,18 +525,18 @@ Before submitting code, verify:
 
 | Practice | Example |
 |----------|---------|
-| Match DB columns | `enhance_datetime` → `enhanceDateTime` |
+| Match JSON keys | `apiProvider` → `apiProvider` |
 | Structured logs | `print("[ClassName] Message")` |
 | Guard clauses | `guard let x = x else { return }` |
 | State flags | `isEnhancing = true; defer { isEnhancing = false }` |
 | Early returns | Return early to reduce nesting |
-| Error context | Log query, parameters, and error |
+| Error context | Log file path and error |
 
 ### Don'ts
 
 | Anti-Pattern | Why It's Bad |
 |--------------|--------------|
-| Different DB/model names | 8+ hours debugging |
+| Missing JSON fields | Silent decoding failures |
 | Unstructured logs | Impossible to trace issues |
 | Fire-and-forget Tasks | Race conditions, duplicates |
 | Force unwrapping | Crashes |
@@ -577,6 +550,7 @@ Before submitting code, verify:
 | Date | Author | Changes |
 |------|--------|---------|
 | March 2024 | Dev Team | Initial creation |
+| March 2026 | Dev Team | Updated for offline-first architecture |
 
 ---
 

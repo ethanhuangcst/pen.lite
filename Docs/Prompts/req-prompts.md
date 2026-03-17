@@ -2,24 +2,25 @@
 
 ## User Story 1: Default Prompt for All Users
 As a Pen user
-I want a default prompt to be available for all users
+I want a default prompt to be available when I first launch the app
 So that I have a starting point for AI interactions without needing to create my own prompt
 
 ### Acceptance Criteria
 
-Scenario: Default Prompt is loaded from Resources/prompts folder
-  Given the application is running
+Scenario: Default Prompts are loaded from Resources/prompts folder
+  Given the application is running for the first time
   And Resources/prompts folder exists with default prompt JSON files
   When the application initializes
   Then it should load all default prompts from Resources/prompts folder
   And each prompt should have a unique ID
   And one prompt should be marked as default
+  And the prompts should be stored in ~/Library/Application Support/Pen.Lite/prompts/
 
-Scenario: Default Prompt is created when registering a new user
-  Given the user is not logged in
-  And the user is on the new User Registration screen
-  When the user successfully completed the registration
-  Then the system should automatically create the default prompts for the user
+Scenario: Default Prompts are created on first launch
+  Given the application is running for the first time
+  And the prompts folder does not exist
+  When the application initializes
+  Then the system should automatically create the default prompts
   And the prompts should be stored in ~/Library/Application Support/Pen.Lite/prompts/
 
 ## User Story 2: Last Prompt Protection
@@ -30,31 +31,31 @@ So that I always have a prompt available for AI interactions
 ### Acceptance Criteria
 
 Scenario: Last prompt cannot be deleted
-  Given the user is logged in
-  And the user navigates to Preferences - Prompts tab
+  Given the user is using the app
+  And the user navigates to Settings - Prompts tab
   And there is only one prompt in the list
   When the prompts list loads
   Then the delete button for the last prompt should be disabled
   And mouse hover over the delete button should show a tooltip indicating "Cannot delete the last prompt"
 
 Scenario: Delete button is enabled when multiple prompts exist
-  Given the user is logged in
-  And the user navigates to Preferences - Prompts tab
+  Given the user is using the app
+  And the user navigates to Settings - Prompts tab
   And there are multiple prompts in the list
   When the prompts list loads
   Then the delete button for each prompt should be enabled
 
 Scenario: Delete button becomes disabled after deleting prompts until only one remains
-  Given the user is logged in
-  And the user navigates to Preferences - Prompts tab
+  Given the user is using the app
+  And the user navigates to Settings - Prompts tab
   And there are two prompts in the list
   When the user deletes one prompt
   Then the remaining prompt's delete button should become disabled
   And a tooltip should appear on hover indicating "Cannot delete the last prompt"
 
 Scenario: Attempting to delete last prompt from Edit window shows error
-  Given the user is logged in
-  And the user navigates to Preferences - Prompts tab
+  Given the user is using the app
+  And the user navigates to Settings - Prompts tab
   And there is only one prompt in the list
   And the user opens the Edit Prompt window for that prompt
   When the user clicks the Delete button
@@ -63,8 +64,8 @@ Scenario: Attempting to delete last prompt from Edit window shows error
   And the Edit Prompt window should remain open
 
 Scenario: Edit button is always enabled for any prompt
-  Given the user is logged in
-  And the user navigates to Preferences - Prompts tab
+  Given the user is using the app
+  And the user navigates to Settings - Prompts tab
   And there is at least one prompt in the list
   When the prompts list loads
   Then the edit button for each prompt should be enabled
@@ -78,8 +79,7 @@ Scenario: Edit button is always enabled for any prompt
    - Tooltip should indicate "Cannot delete the last prompt" on hover
    - Edit button should always be enabled
 4. **Error Handling**: Attempts to delete the last prompt should be rejected with an appropriate error message
-5. **New User Onboarding**: Default prompts should be automatically created for new users
-6. **Fallback Mechanism**: If no prompts exist, a fallback prompt should be created
+5. **New User Onboarding**: Default prompts should be automatically created on first launch
 
 ## Prompt File Format (JSON)
 
