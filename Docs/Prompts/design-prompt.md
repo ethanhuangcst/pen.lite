@@ -14,16 +14,17 @@ Currently, the system prevents deletion of "default" prompts. The new requiremen
 
 | File | Purpose |
 |------|---------|
-| `PromptsTabView.swift` | UI for prompts list, delete button handling |
-| `EditPromptWindow.swift` | Edit window with delete functionality |
+| `PromptsTabView.swift` | UI for prompts list, double-click handler |
+| `NewOrEditPrompt.swift` | Edit window with delete functionality |
 | `PromptService.swift` | Business logic for prompt CRUD operations |
 | `Prompt.swift` | Prompt model with `isDefault` property |
 
 ### Current Behavior
 
-- Delete button is disabled for prompts marked as `isDefault: true`
-- Tooltip shows "Default prompt cannot be deleted"
-- Edit window delete button follows same logic
+- Delete button is in the edit window (not in table)
+- Double-click on row opens edit window
+- Delete confirmation dialog is centered in edit window
+- Last prompt cannot be deleted (shows error message)
 
 ## Proposed Design
 
@@ -31,31 +32,25 @@ Currently, the system prevents deletion of "default" prompts. The new requiremen
 
 #### PromptsTabView.swift
 
-**Current Logic:**
+**Implementation:**
 ```swift
-// Disable delete for default prompts
-deleteButton.isEnabled = !prompt.isDefault
+// Table has 2 columns: Name (120px) | Prompt (380px)
+// Double-click to open edit window
+tableView.target = self
+tableView.doubleAction = #selector(handleDoubleClick(_:))
+
+// No delete button in table - delete is in edit window
 ```
 
-**New Logic:**
+#### NewOrEditPrompt.swift
+
+**Implementation:**
 ```swift
-// Disable delete for last prompt
-let isLastPrompt = prompts.count == 1
-deleteButton.isEnabled = !isLastPrompt
-if isLastPrompt {
-    deleteButton.toolTip = "Cannot delete the last prompt"
+// Delete button only visible in edit mode
+if !isNewPrompt {
+    deleteButton.isHidden = false
 }
-```
 
-#### EditPromptWindow.swift
-
-**Current Logic:**
-```swift
-// Delete button always enabled, shows confirmation dialog
-```
-
-**New Logic:**
-```swift
 // Check if this is the last prompt before showing delete confirmation
 func deleteButtonClicked() {
     let prompts = try? PromptService.shared.getPrompts()
@@ -64,8 +59,13 @@ func deleteButtonClicked() {
         WindowManager.shared.displayPopupMessage("Cannot delete the last prompt")
         return
     }
-    // Show confirmation dialog
+    // Show confirmation dialog centered in edit window
     showDeleteConfirmationDialog()
+}
+
+// Cancel button closes without popup
+func cancelButtonClicked() {
+    closeAndUnhideOriginatingWindow()
 }
 ```
 
@@ -173,8 +173,8 @@ User clicks Delete button
 
 | Scenario | Expected Behavior |
 |----------|-------------------|
-| User has 1 prompt | Delete button disabled, tooltip shows |
-| User has 2 prompts, deletes 1 | Remaining prompt's delete button becomes disabled |
+| User has 1 prompt | Delete button in edit window shows error when clicked |
+| User has 2 prompts, deletes 1 | Remaining prompt's delete button shows error when clicked |
 | User opens edit window for last prompt | Delete button shows error on click |
 | User force-deletes via API | Service layer throws error |
 | User deletes all prompts via file system | App recreates default prompt on next launch |
@@ -190,9 +190,10 @@ User clicks Delete button
 
 ### Integration Tests
 
-1. `PromptsTabViewTests.testDeleteButton_DisabledWhenOnePrompt`
-2. `PromptsTabViewTests.testDeleteButton_EnabledWhenMultiplePrompts`
-3. `EditPromptWindowTests.testDeleteButton_ShowsErrorForLastPrompt`
+1. `PromptsTabViewTests.testDoubleClick_OpensEditWindow`
+2. `PromptsTabViewTests.testTableHasTwoColumns`
+3. `NewOrEditPromptTests.testDeleteButton_ShowsErrorForLastPrompt`
+4. `NewOrEditPromptTests.testCancelButton_ClosesWithoutPopup`
 
 ### Acceptance Tests
 
@@ -201,27 +202,25 @@ See acceptance criteria in `req-prompts.md`
 ## Migration Plan
 
 1. **Phase 1**: Add `canDeletePrompt()` method to `PromptService`
-2. **Phase 2**: Update `PromptsTabView` to use new logic
-3. **Phase 3**: Update `EditPromptWindow` to use new logic
+2. **Phase 2**: Update `PromptsTabView` to use 2-column table with double-click handler
+3. **Phase 3**: Update `NewOrEditPrompt` with delete button and confirmation dialog
 4. **Phase 4**: Add localization strings
-5. **Phase 5**: Remove `isDefault` check from delete logic (cleanup)
+5. **Phase 5**: Remove "set as default prompt" checkbox (cleanup)
 
 ## Rollback Plan
 
-If issues arise, revert to checking `isDefault` property:
-
-```swift
-// Rollback: Use isDefault check
-deleteButton.isEnabled = !prompt.isDefault
-```
+If issues arise, revert to previous implementation with edit/delete buttons in table.
 
 ## Open Questions
 
 1. Should we show a different tooltip for the last prompt vs. default prompt?
-   - **Decision**: Yes, show "Cannot delete the last prompt" for clarity
+   - **Decision**: N/A - Delete button is in edit window, not in table
 
 2. Should the error message be a popup or inline?
    - **Decision**: Popup for consistency with other error messages
 
 3. What happens if user manually deletes all prompt files?
    - **Decision**: App will recreate default prompts on next launch (existing behavior)
+
+4. Should the delete confirmation be centered in the edit window?
+   - **Decision**: Yes, for consistency with AI Connections tab

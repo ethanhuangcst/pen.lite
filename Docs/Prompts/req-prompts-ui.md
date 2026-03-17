@@ -37,11 +37,12 @@ This document outlines the UI design specifications for the Prompts tab and rela
 #### Table View
 - **Size**: Fills table container
 - **Border**: 1px light gray (0.3 alpha)
-- **Rows**: 70px height each
+- **Rows**: 32px height each
 - **Columns**:
   | Column | Width | Description |
   |--------|-------|-------------|
-  | Prompt Name | Full width | Read-only, trimmed to 1 line |
+  | Name | 120px | Read-only, prompt name |
+  | Prompt | 380px | Read-only, prompt text (truncated with "...") |
 
 #### Double-Click Behavior
 - **Action**: Double-click on row opens NewOrEditPrompt window with existing prompt data
@@ -89,26 +90,26 @@ This document outlines the UI design specifications for the Prompts tab and rela
 - **Font**: System font, 14pt
 - **Scrollable**: Vertical scroller auto-shown for overflow text
 
-#### Default Prompt Checkbox
-- **Position**: (40, 26)
-- **Size**: (200, 32)
-- **Text**: "Set as default prompt"
-- **Style**: Checkbox (switch button)
-- **Default State**: Off
-
 #### Buttons
 - **Position**: Bottom right corner
-- **Size**: 68 x 32 each
+- **Size**: 100 x 32 each
 - **Spacing**: 20px between buttons
 - **Background**: White
 - **Borders**:
-  - Delete: Red border (only visible in edit mode)
   - Cancel: Gray border
+  - Delete: Red border, red text (only visible in edit mode)
   - Save: Green border
-- **Buttons**:
-  - **Delete**: (x, 26) - Red border, red text - only visible when editing existing prompt
-  - **Cancel**: (x, 26) - Gray border
-  - **Save**: (x, 26) - Green border
+- **Button Layout**:
+  - **New Prompt Mode**: Cancel, Save (no gap, right-aligned)
+  - **Edit Prompt Mode**: Cancel, Delete, Save (evenly spaced, right-aligned)
+- **Positions**:
+  - **New Prompt Mode**:
+    - Cancel: (windowWidth - 220, 20)
+    - Save: (windowWidth - 100, 20)
+  - **Edit Prompt Mode**:
+    - Cancel: (windowWidth - 340, 20)
+    - Delete: (windowWidth - 220, 20)
+    - Save: (windowWidth - 100, 20)
 
 ### 2.3 Typography
 - **Headings**: Bold system font, 16-18pt
@@ -118,11 +119,13 @@ This document outlines the UI design specifications for the Prompts tab and rela
 
 ### 2.4 Behavior
 - **Modal Window**: NewOrEditPrompt opens as a modal window, blocking interaction with other windows
-- **Window Positioning**: NewOrEditPrompt positions itself relative to the originating window
-- **Text Truncation**: Prompt text is trimmed to 3 lines with "..." for readability
+- **Window Positioning**: NewOrEditPrompt positions itself at the same position as the Settings window
+- **Text Truncation**: Prompt text is truncated with "..." for readability in table
 - **Tooltips**: Full text is shown on hover for truncated fields
 - **Popup Messages**: Used for user feedback on actions
 - **Delete Confirmation**: Required for deleting prompts to prevent accidental actions
+- **Cancel Button**: Closes window without popup message (consistent with AI Configuration tab)
+- **Delete Button**: Only visible in edit mode, shows confirmation dialog before deleting
 
 ## 3. Delete Confirmation Dialog
 
@@ -130,7 +133,7 @@ This document outlines the UI design specifications for the Prompts tab and rela
 - **Window Size**: 238 x 100
 - **Style**: Borderless window
 - **Background**: White (#FFFFFF)
-- **Positioning**: Opens near mouse cursor
+- **Positioning**: Centered in NewOrEditPrompt window (edit window)
 
 ### 3.2 UI Elements
 
@@ -156,7 +159,7 @@ This document outlines the UI design specifications for the Prompts tab and rela
 
 ### 3.3 Behavior
 - **Triggered**: When Delete button is clicked in NewOrEditPrompt window
-- **Positioning**: Opens at mouse cursor position + 6px offset
+- **Positioning**: Centered in NewOrEditPrompt window
 - **Cancel**: Closes dialog, keeps edit window open
 - **Delete**: Closes dialog, closes edit window, deletes prompt, shows success message
 
@@ -166,6 +169,7 @@ This document outlines the UI design specifications for the Prompts tab and rela
 - Key localization strings include:
   - "first_prompt_default"
   - "prompt_name_column"
+  - "prompt_text_column"
   - "new_prompt_title"
   - "edit_prompt_title"
   - "prompt_name_label"
@@ -174,8 +178,6 @@ This document outlines the UI design specifications for the Prompts tab and rela
   - "save_button"
   - "cancel_button"
   - "delete_button"
-  - "create_new_prompt_canceled"
-  - "edit_prompt_canceled"
   - "prompt_created_successfully"
   - "prompt_updated_successfully"
   - "prompt_deleted_successfully"
@@ -184,18 +186,21 @@ This document outlines the UI design specifications for the Prompts tab and rela
 
 ## 5. Behavior
 - **Modal Window**: NewOrEditPrompt opens as a modal window, blocking interaction with other windows
-- **Window Positioning**: NewOrEditPrompt positions itself relative to the originating window
-- **Text Truncation**: Prompt text is trimmed to 3 lines with "..." for readability
+- **Window Positioning**: NewOrEditPrompt positions itself at the same position as the Settings window
+- **Text Truncation**: Prompt text is truncated with "..." for readability in table
 - **Tooltips**: Full text is shown on hover for truncated fields
 - **Popup Messages**: Used for user feedback on actions
 - **Delete Confirmation**: Required for deleting prompts to prevent accidental actions
 - **Cancel Button**: Closes window without popup message (consistent with AI Configuration tab)
+- **Delete Button**: Only visible in edit mode, shows confirmation dialog before deleting
 
-## 6. Consistency
-- Follows the same design patterns as AIConfigurationTabView
-- Uses the same button styles, sizes, and positioning
-- Maintains consistent spacing and alignment across components
-- Shares the same modal window behavior and popup message system
-- Double-click to edit (consistent with AI Configuration tab)
-- Delete button in edit window (consistent with AI Configuration tab)
-- Cancel button closes without popup (consistent with AI Configuration tab)
+## 6. Consistency with AI Connections Tab
+Both Prompts tab and AI Connections tab follow the same design patterns:
+- **Table Structure**: 2 columns (Name 120px, Content 380px)
+- **Double-click to Edit**: Double-click on row opens edit window
+- **Delete in Edit Window**: Delete button is in edit window, not in table
+- **Cancel Behavior**: Cancel button closes window without popup message
+- **Delete Confirmation**: Centered in edit window when deleting
+- **Button Layout**: Cancel, Delete (edit mode only), Save
+- **Window Management**: Only one edit window can be open at a time
+- **Window Positioning**: Edit window opens at same position as Settings window

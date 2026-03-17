@@ -266,9 +266,14 @@ Settings Window (visible, same position)
 | Click Delete (last) | Show error popup |
 | Confirm delete | Delete, close window, restore Settings, refresh table |
 
-## 7. Consistency
-- Follows the same design patterns as PromptsTabView
-- Uses the same button styles, sizes, and positioning
-- Maintains consistent spacing and alignment across components
-- Shares the same modal window behavior and popup message system
+## 7. Consistency with Prompts Tab
+Both AI Connections tab and Prompts tab follow the same design patterns:
+- **Table Structure**: 2 columns (Name/Provider 120px, Content/API Key 380px)
+- **Double-click to Edit**: Double-click on row opens edit window
+- **Delete in Edit Window**: Delete button is in edit window, not in table
+- **Cancel Behavior**: Cancel button closes window without popup message
+- **Delete Confirmation**: Centered in edit window when deleting
+- **Button Layout**: Cancel, Delete (edit mode only), Test & Save/Save
+- **Window Management**: Only one edit window can be open at a time
+- **Window Positioning**: Edit window opens at same position as Settings window
 - Inherits BaseWindow for standard window behaviors

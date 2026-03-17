@@ -30,30 +30,7 @@ So that I always have a prompt available for AI interactions
 
 ### Acceptance Criteria
 
-Scenario: Last prompt cannot be deleted
-  Given the user is using the app
-  And the user navigates to Settings - Prompts tab
-  And there is only one prompt in the list
-  When the prompts list loads
-  Then the delete button for the last prompt should be disabled
-  And mouse hover over the delete button should show a tooltip indicating "Cannot delete the last prompt"
-
-Scenario: Delete button is enabled when multiple prompts exist
-  Given the user is using the app
-  And the user navigates to Settings - Prompts tab
-  And there are multiple prompts in the list
-  When the prompts list loads
-  Then the delete button for each prompt should be enabled
-
-Scenario: Delete button becomes disabled after deleting prompts until only one remains
-  Given the user is using the app
-  And the user navigates to Settings - Prompts tab
-  And there are two prompts in the list
-  When the user deletes one prompt
-  Then the remaining prompt's delete button should become disabled
-  And a tooltip should appear on hover indicating "Cannot delete the last prompt"
-
-Scenario: Attempting to delete last prompt from Edit window shows error
+Scenario: Last prompt cannot be deleted from edit window
   Given the user is using the app
   And the user navigates to Settings - Prompts tab
   And there is only one prompt in the list
@@ -63,12 +40,21 @@ Scenario: Attempting to delete last prompt from Edit window shows error
   And the prompt should not be deleted
   And the Edit Prompt window should remain open
 
-Scenario: Edit button is always enabled for any prompt
+Scenario: Delete button in edit window is enabled when multiple prompts exist
   Given the user is using the app
   And the user navigates to Settings - Prompts tab
-  And there is at least one prompt in the list
-  When the prompts list loads
-  Then the edit button for each prompt should be enabled
+  And there are multiple prompts in the list
+  And the user opens the Edit Prompt window
+  When the edit window loads
+  Then the Delete button should be enabled
+
+Scenario: Delete button becomes disabled after deleting prompts until only one remains
+  Given the user is using the app
+  And the user navigates to Settings - Prompts tab
+  And there are two prompts in the list
+  When the user deletes one prompt from the edit window
+  Then the remaining prompt's delete button in edit window should show error when clicked
+  And an error message should appear indicating "Cannot delete the last prompt"
 
 ## User Story 3: Edit Prompt via Double-Click
 As a Pen user
@@ -131,13 +117,16 @@ Scenario: Cannot delete last prompt from edit window
 1. **Prompt Storage**: Prompts are stored as JSON files in ~/Library/Application Support/Pen.Lite/prompts/
 2. **Default Prompts**: Default prompts are loaded from Resources/prompts/ during initialization
 3. **UI Behavior**: 
+   - Table has 2 columns: Name (120px) | Prompt (380px)
    - Double-click on row opens edit window
-   - Delete button for the last prompt should be disabled
-   - Tooltip should indicate "Cannot delete the last prompt" on hover
+   - Delete button is in edit window (not in table)
    - Cancel button closes window without popup message
+   - Delete confirmation dialog is centered in edit window
+   - Button layout in edit window: Cancel, Delete (edit mode only), Save
 4. **Error Handling**: Attempts to delete the last prompt should be rejected with an appropriate error message
 5. **New User Onboarding**: Default prompts should be automatically created on first launch
 6. **Window Management**: Only one edit window can be open at a time
+7. **Consistency**: Prompts tab follows the same design patterns as AI Connections tab
 
 ## Prompt File Format (JSON)
 
