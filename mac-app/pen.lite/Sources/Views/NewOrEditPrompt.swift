@@ -90,7 +90,7 @@ class NewOrEditPrompt: BaseWindow, NSTextViewDelegate {
             promptPlaceholderLabel.isHidden = true
         } else {
             promptNameField.stringValue = ""
-            promptNameField.placeholderString = localizedString(for: "enter_prompt_name_placeholder")
+            promptNameField.placeholderString = LocalizationService.shared.localizedString(for: "enter_prompt_name_placeholder")
             promptTextField.string = ""
             defaultPromptCheckbox.state = .off
             defaultPromptCheckbox.isHidden = false
@@ -107,7 +107,7 @@ class NewOrEditPrompt: BaseWindow, NSTextViewDelegate {
         addStandardCloseButton(to: contentView, windowWidth: windowSize.width, windowHeight: windowSize.height)
         
         let titleLabel = NSTextField(frame: NSRect(x: 70, y: windowSize.height - 55, width: windowSize.width - 90, height: 30))
-        let title = isNewPrompt ? localizedString(for: "new_prompt_title") : localizedString(for: "edit_prompt_title")
+        let title = isNewPrompt ? LocalizationService.shared.localizedString(for: "new_prompt_title") : LocalizationService.shared.localizedString(for: "edit_prompt_title")
         titleLabel.stringValue = title
         titleLabel.isBezeled = false
         titleLabel.drawsBackground = false
@@ -118,7 +118,7 @@ class NewOrEditPrompt: BaseWindow, NSTextViewDelegate {
         
         promptNameField.frame = NSRect(x: 40, y: windowSize.height - 102, width: windowSize.width - 80, height: 24)
         promptNameField.wantsLayer = true
-        promptNameField.layer?.backgroundColor = NSColor.lightGray.withAlphaComponent(0.1).cgColor
+        promptNameField.layer?.backgroundColor = NSColor.lightGray.withAlphaComponent(0.0).cgColor
         promptNameField.layer?.borderWidth = 1.0
         promptNameField.layer?.borderColor = NSColor.separatorColor.withAlphaComponent(0.5).cgColor
         promptNameField.layer?.cornerRadius = 4.0
@@ -129,7 +129,7 @@ class NewOrEditPrompt: BaseWindow, NSTextViewDelegate {
         promptScrollView.autohidesScrollers = false
         
         promptPlaceholderLabel.frame = NSRect(x: 8, y: 8, width: promptScrollView.frame.width - 32, height: 336 - 16)
-        promptPlaceholderLabel.stringValue = localizedString(for: "markdown_format_recommended_tooltip")
+        promptPlaceholderLabel.stringValue = LocalizationService.shared.localizedString(for: "markdown_format_recommended_tooltip")
         promptPlaceholderLabel.textColor = NSColor.lightGray
         promptPlaceholderLabel.isBezeled = false
         promptPlaceholderLabel.drawsBackground = false
@@ -167,26 +167,18 @@ class NewOrEditPrompt: BaseWindow, NSTextViewDelegate {
         let buttonHeight: CGFloat = 32
         let buttonSpacing: CGFloat = 20
         
-        saveButton.frame = NSRect(x: windowSize.width - buttonWidth - 20, y: buttonY, width: buttonWidth, height: buttonHeight)
-        saveButton.title = localizedString(for: "save_button")
-        saveButton.bezelStyle = .rounded
-        saveButton.target = self
-        saveButton.action = #selector(saveButtonClicked)
-        saveButton.wantsLayer = true
-        saveButton.layer?.borderWidth = 1.0
-        saveButton.layer?.borderColor = NSColor.systemGreen.cgColor
-        saveButton.layer?.cornerRadius = 6.0
-        contentView.addSubview(saveButton)
-        
-        cancelButton.frame = NSRect(x: windowSize.width - buttonWidth - 20 - buttonWidth - buttonSpacing, y: buttonY, width: buttonWidth, height: buttonHeight)
-        cancelButton.title = localizedString(for: "cancel_button")
+        // Button order: Cancel, Delete, Save
+        // Cancel button (leftmost)
+        cancelButton.frame = NSRect(x: windowSize.width - buttonWidth - 20 - buttonWidth - buttonSpacing - buttonWidth - buttonSpacing, y: buttonY, width: buttonWidth, height: buttonHeight)
+        cancelButton.title = LocalizationService.shared.localizedString(for: "cancel_button")
         cancelButton.bezelStyle = .rounded
         cancelButton.target = self
         cancelButton.action = #selector(cancelButtonClicked)
         contentView.addSubview(cancelButton)
         
-        deleteButton.frame = NSRect(x: windowSize.width - buttonWidth - 20 - buttonWidth - buttonSpacing - buttonWidth - buttonSpacing, y: buttonY, width: buttonWidth, height: buttonHeight)
-        deleteButton.title = localizedString(for: "delete_button")
+        // Delete button (middle) - only for edit mode
+        deleteButton.frame = NSRect(x: windowSize.width - buttonWidth - 20 - buttonWidth - buttonSpacing, y: buttonY, width: buttonWidth, height: buttonHeight)
+        deleteButton.title = LocalizationService.shared.localizedString(for: "delete_button")
         deleteButton.bezelStyle = .rounded
         deleteButton.target = self
         deleteButton.action = #selector(deleteButtonClicked)
@@ -198,12 +190,27 @@ class NewOrEditPrompt: BaseWindow, NSTextViewDelegate {
         deleteButton.isHidden = isNewPrompt
         contentView.addSubview(deleteButton)
         
-        defaultPromptCheckbox.frame = NSRect(x: 40, y: 26, width: 200, height: 32)
-        defaultPromptCheckbox.title = localizedString(for: "set_as_default_prompt")
-        defaultPromptCheckbox.bezelStyle = .regularSquare
-        defaultPromptCheckbox.setButtonType(.switch)
-        defaultPromptCheckbox.state = .off
-        contentView.addSubview(defaultPromptCheckbox)
+        // Save button (rightmost)
+        saveButton.frame = NSRect(x: windowSize.width - buttonWidth - 20, y: buttonY, width: buttonWidth, height: buttonHeight)
+        saveButton.title = LocalizationService.shared.localizedString(for: "save_button")
+        saveButton.bezelStyle = .rounded
+        saveButton.target = self
+        saveButton.action = #selector(saveButtonClicked)
+        saveButton.wantsLayer = true
+        saveButton.layer?.borderWidth = 1.0
+        saveButton.layer?.borderColor = NSColor.systemGreen.cgColor
+        saveButton.layer?.cornerRadius = 6.0
+        contentView.addSubview(saveButton)
+        
+        // Default prompt checkbox - only show for new prompts
+        if isNewPrompt {
+            defaultPromptCheckbox.frame = NSRect(x: 40, y: 26, width: 200, height: 32)
+            defaultPromptCheckbox.title = LocalizationService.shared.localizedString(for: "set_as_default_prompt")
+            defaultPromptCheckbox.bezelStyle = .regularSquare
+            defaultPromptCheckbox.setButtonType(.switch)
+            defaultPromptCheckbox.state = .off
+            contentView.addSubview(defaultPromptCheckbox)
+        }
         
         if let prompt = prompt {
             promptNameField.stringValue = prompt.promptName
@@ -212,7 +219,7 @@ class NewOrEditPrompt: BaseWindow, NSTextViewDelegate {
             defaultPromptCheckbox.isHidden = prompt.isDefault
             promptPlaceholderLabel.isHidden = true
         } else {
-            promptNameField.placeholderString = localizedString(for: "enter_prompt_name_placeholder")
+            promptNameField.placeholderString = LocalizationService.shared.localizedString(for: "enter_prompt_name_placeholder")
             promptTextField.string = ""
             defaultPromptCheckbox.state = .off
             defaultPromptCheckbox.isHidden = false
@@ -220,9 +227,10 @@ class NewOrEditPrompt: BaseWindow, NSTextViewDelegate {
         }
         
         promptNameField.nextKeyView = promptTextField
-        promptTextField.nextKeyView = saveButton
-        saveButton.nextKeyView = cancelButton
-        cancelButton.nextKeyView = promptNameField
+        promptTextField.nextKeyView = cancelButton
+        cancelButton.nextKeyView = deleteButton
+        deleteButton.nextKeyView = saveButton
+        saveButton.nextKeyView = promptNameField
         
         initialFirstResponder = promptNameField
     }
@@ -234,7 +242,7 @@ class NewOrEditPrompt: BaseWindow, NSTextViewDelegate {
         
         guard !promptName.isEmpty,
               !promptText.isEmpty else {
-            displayPopupMessage(localizedString(for: "all_fields_required"))
+            displayPopupMessage(LocalizationService.shared.localizedString(for: "all_fields_required"))
             return
         }
         

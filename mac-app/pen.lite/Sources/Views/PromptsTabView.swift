@@ -43,6 +43,8 @@ class PromptsTabView: NSView, NSTableViewDataSource, NSTableViewDelegate {
             for column in tableColumns {
                 if column.identifier.rawValue == "name" {
                     column.title = LocalizationService.shared.localizedString(for: "prompt_name_column")
+                } else if column.identifier.rawValue == "prompt" {
+                    column.title = LocalizationService.shared.localizedString(for: "prompt_column")
                 }
             }
         }
@@ -160,10 +162,16 @@ class PromptsTabView: NSView, NSTableViewDataSource, NSTableViewDelegate {
         tableView.dataSource = self
         tableView.delegate = self
         
+        // Column widths match AI Connections table: Provider=120, API Key=380
         let nameColumn = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("name"))
         nameColumn.title = LocalizationService.shared.localizedString(for: "prompt_name_column")
-        nameColumn.width = windowWidth - 60
+        nameColumn.width = 120
         tableView.addTableColumn(nameColumn)
+        
+        let promptColumn = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("prompt"))
+        promptColumn.title = LocalizationService.shared.localizedString(for: "prompt_column")
+        promptColumn.width = 380
+        tableView.addTableColumn(promptColumn)
         
         tableView.wantsLayer = true
         tableView.layer?.borderWidth = 1.0
@@ -209,6 +217,8 @@ class PromptsTabView: NSView, NSTableViewDataSource, NSTableViewDelegate {
         
         if columnIdentifier.rawValue == "name" {
             return prompt.promptName
+        } else if columnIdentifier.rawValue == "prompt" {
+            return prompt.promptText
         }
         return nil
     }
@@ -219,10 +229,13 @@ class PromptsTabView: NSView, NSTableViewDataSource, NSTableViewDelegate {
         let prompt = prompts[row]
         
         if columnIdentifier.rawValue == "name" {
-            let textField = createReadonlyTextField(text: prompt.promptName)
+            let textField = createReadonlyTextField(text: prompt.promptName, maxWidth: 120)
             if prompt.isDefault {
                 textField.stringValue = "\(prompt.promptName) \(LocalizationService.shared.localizedString(for: "default_suffix"))"
             }
+            return textField
+        } else if columnIdentifier.rawValue == "prompt" {
+            let textField = createReadonlyTextField(text: prompt.promptText, maxWidth: 380)
             return textField
         }
         return nil
@@ -268,9 +281,9 @@ class PromptsTabView: NSView, NSTableViewDataSource, NSTableViewDelegate {
     }
     
     // MARK: - UI Helper Methods
-    private func createReadonlyTextField(text: String) -> NSTextField {
-        let textField = NSTextField(frame: NSRect(x: 0, y: 5, width: 150, height: 60))
-        textField.stringValue = trimText(text, maxLines: 1)
+    private func createReadonlyTextField(text: String, maxWidth: CGFloat) -> NSTextField {
+        let textField = NSTextField(frame: NSRect(x: 0, y: 5, width: maxWidth, height: 60))
+        textField.stringValue = trimTextToFit(text, maxWidth: maxWidth)
         textField.isBezeled = false
         textField.drawsBackground = false
         textField.isEditable = false
@@ -285,6 +298,25 @@ class PromptsTabView: NSView, NSTableViewDataSource, NSTableViewDelegate {
     }
     
     // MARK: - Helper Methods
+    private func trimTextToFit(_ text: String, maxWidth: CGFloat) -> String {
+        let font = NSFont.systemFont(ofSize: 14)
+        let attributes: [NSAttributedString.Key: Any] = [.font: font]
+        
+        let fullString = text as NSString
+        let fullSize = fullString.size(withAttributes: attributes)
+        
+        if fullSize.width <= maxWidth {
+            return text
+        }
+        
+        var truncated = text
+        while truncated.size(withAttributes: attributes).width > maxWidth && !truncated.isEmpty {
+            truncated = String(truncated.dropLast())
+        }
+        
+        return truncated + "..."
+    }
+    
     private func trimText(_ text: String, maxLines: Int) -> String {
         let lines = text.components(separatedBy: "\n")
         if lines.count <= maxLines {
@@ -309,13 +341,22 @@ class PromptsTabView: NSView, NSTableViewDataSource, NSTableViewDelegate {
         promptForDelete = prompt
         rowForDelete = row
         
-        let mouseLocation = NSEvent.mouseLocation
-        
         let dialogWidth: CGFloat = 238
         let dialogHeight: CGFloat = 100
         
-        let originX = mouseLocation.x + 6 - dialogWidth
-        let originY = mouseLocation.y + 6 - dialogHeight
+        // Center the dialog in the NewOrEditPrompt window
+        var originX: CGFloat = 0
+        var originY: CGFloat = 0
+        
+        if let editWindow = NewOrEditPrompt.sharedWindow {
+            let editFrame = editWindow.frame
+            originX = editFrame.origin.x + (editFrame.width - dialogWidth) / 2
+            originY = editFrame.origin.y + (editFrame.height - dialogHeight) / 2
+        } else if let settingsWindow = self.window {
+            let settingsFrame = settingsWindow.frame
+            originX = settingsFrame.origin.x + (settingsFrame.width - dialogWidth) / 2
+            originY = settingsFrame.origin.y + (settingsFrame.height - dialogHeight) / 2
+        }
         
         let dialogWindow = NSWindow(
             contentRect: NSRect(x: originX, y: originY, width: dialogWidth, height: dialogHeight),
@@ -369,27 +410,6 @@ class PromptsTabView: NSView, NSTableViewDataSource, NSTableViewDelegate {
         contentView.addSubview(deleteButton)
         
         dialogWindow.contentView = contentView
-        
-        if let screen = NSScreen.screens.first(where: { $0.frame.contains(mouseLocation) }) ?? NSScreen.main {
-            let visibleFrame = screen.visibleFrame
-            var frame = dialogWindow.frame
-            
-            if frame.maxX > visibleFrame.maxX {
-                frame.origin.x = visibleFrame.maxX - frame.width
-            }
-            if frame.minX < visibleFrame.minX {
-                frame.origin.x = visibleFrame.minX
-            }
-            
-            if frame.minY < visibleFrame.minY {
-                frame.origin.y = visibleFrame.minY
-            }
-            if frame.maxY > visibleFrame.maxY {
-                frame.origin.y = visibleFrame.maxY - frame.height
-            }
-            
-            dialogWindow.setFrame(frame, display: false)
-        }
         
         dialogWindow.makeKeyAndOrderFront(nil)
     }
