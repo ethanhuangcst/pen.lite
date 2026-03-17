@@ -302,19 +302,22 @@ class PromptsTabView: NSView, NSTableViewDataSource, NSTableViewDelegate {
         let font = NSFont.systemFont(ofSize: 14)
         let attributes: [NSAttributedString.Key: Any] = [.font: font]
         
-        let fullString = text as NSString
-        let fullSize = fullString.size(withAttributes: attributes)
+        let fullSize = (text as NSString).size(withAttributes: attributes)
         
         if fullSize.width <= maxWidth {
             return text
         }
         
-        var truncated = text
-        while truncated.size(withAttributes: attributes).width > maxWidth && !truncated.isEmpty {
-            truncated = String(truncated.dropLast())
+        // Estimate max characters based on average character width
+        let avgCharWidth = fullSize.width / CGFloat(text.count)
+        let estimatedMaxChars = Int(maxWidth / avgCharWidth) - 3
+        
+        if estimatedMaxChars > 0 && estimatedMaxChars < text.count {
+            let index = text.index(text.startIndex, offsetBy: estimatedMaxChars)
+            return String(text[..<index]) + "..."
         }
         
-        return truncated + "..."
+        return text
     }
     
     private func trimText(_ text: String, maxLines: Int) -> String {
