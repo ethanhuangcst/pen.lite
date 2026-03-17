@@ -15,7 +15,7 @@ This document outlines the UI design specifications for the AI Configurations ta
 #### User Label
 - **Position**: (20, windowHeight - 92)
 - **Size**: (windowWidth - 40, 24)
-- **Text**: "AI Connections for [User Name]"
+- **Text**: "AI Connections"
 - **Font**: Bold system font, 16pt
 - **Alignment**: Left
 

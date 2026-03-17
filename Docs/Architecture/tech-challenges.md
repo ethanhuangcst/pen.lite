@@ -565,47 +565,39 @@ class PenWindowService {
 
 ---
 
-### Challenge 11: Date Parsing from MySQL
+### Challenge 11: Date Parsing from JSON Files
 
 | Aspect | Details |
 |--------|---------|
-| **Requirement** | Parse datetime values from MySQL for display in history |
-| **Challenge** | MySQL returns datetime in format with space before timezone: `2026-03-03 14:50:15 +0000` |
-| **Solution** | Remove space before timezone offset before parsing |
+| **Requirement** | Parse datetime values from JSON files for display |
+| **Challenge** | JSON files may contain datetime in ISO 8601 format with various representations |
+| **Solution** | Use ISO8601DateFormatter with multiple format fallbacks |
 
 #### Implementation
 
 ```swift
-// File: ContentHistoryModel.swift
+// File: DateParsingHelper.swift
 private static func dateFromISOString(_ string: String) -> Date? {
-    var processedString = string
+    let formatter = ISO8601DateFormatter()
+    formatter.formatOptions = [.withInternetDateTime]
     
-    // Remove timezone name in parentheses if present
-    if let openParen = processedString.range(of: "(") {
-        processedString = processedString.prefix(upTo: openParen.lowerBound)
-            .trimmingCharacters(in: .whitespaces)
+    if let date = formatter.date(from: string) {
+        return date
     }
     
-    // Fix format: "2026-03-03 14:50:15 +0000" → "2026-03-03 14:50:15+0000"
-    if let range = processedString.range(of: " [+-]\\d{4}$", options: .regularExpression) {
-        let substring = processedString[range]
-        let fixed = substring.dropFirst()  // Remove the space
-        processedString.replaceSubrange(range, with: fixed)
-    }
+    // Fallback to DateFormatter for non-standard formats
+    let fallbackFormatter = DateFormatter()
+    fallbackFormatter.locale = Locale(identifier: "en_US_POSIX")
     
-    let formatter = DateFormatter()
-    formatter.locale = Locale(identifier: "en_US_POSIX")
-    
-    // Try different formats
     let formats = [
-        "yyyy-MM-dd HH:mm:ssZ",
-        "yyyy-MM-dd HH:mm:ss Z",
+        "yyyy-MM-dd'T'HH:mm:ssZ",
+        "yyyy-MM-dd'T'HH:mm:ss.SSSZ",
         "yyyy-MM-dd HH:mm:ss"
     ]
     
     for format in formats {
-        formatter.dateFormat = format
-        if let date = formatter.date(from: processedString) {
+        fallbackFormatter.dateFormat = format
+        if let date = fallbackFormatter.date(from: string) {
             return date
         }
     }

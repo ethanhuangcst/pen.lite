@@ -15,7 +15,7 @@ This document outlines the UI design specifications for the Prompts tab and rela
 #### User Label
 - **Position**: (20, windowHeight - 92)
 - **Size**: (windowWidth - 40, 24)
-- **Text**: "Predefined prompts for [User Name]"
+- **Text**: "Predefined Prompts"
 - **Font**: Bold system font, 16pt
 - **Alignment**: Left
 

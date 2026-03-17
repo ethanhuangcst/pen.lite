@@ -1,4 +1,4 @@
-# Pen Feature List
+# Pen Lite Feature List
 
 # Features to Keep
 
@@ -127,14 +127,6 @@
 - Include timestamps and severity levels
 - Support different logging levels
 
-# To Be Changed
-
-## Load AI Configurations
-- Load AI configurations on Pen window launch
-- Load user prompts and preferences
-- Handle missing configurations gracefully
-- Change: AI configuration and user prompts will be stored in local files
-
 ## AI Integration
 - Add new AI provider connections
 - Edit existing AI provider connections
@@ -147,11 +139,9 @@
 - Support DeepSeek API
 - Support Qwen API
 - Support custom AI providers
-- Store API keys securely
-- Encrypt API keys at rest
+- Store API keys securely in local JSON files
 - Allow API key rotation
 - Handle API key validation
-- Change: AI configuration and user prompts will be stored in local files
 
 ## Prompts
 - System-provided default prompt for all users
@@ -159,12 +149,11 @@
 - Editable by users
 - Create new custom prompts
 - Edit existing custom prompts
-- Delete custom prompts
+- Delete custom prompts (except last one)
 - Organize prompts by category
 - Select prompt from dropdown in Pen window
 - Search and filter prompts
 - Preview prompt content before selection
-- Change: AI configuration and user prompts will be stored in local files
 
 ## Settings
 - Open settings window from menu bar
@@ -175,64 +164,66 @@
 - Organize connections by provider
 - Manage custom prompts
 - Create and edit prompts
-- Import/export prompts
-- Change: Renamed from 'Preferences' to 'Settings'
 
-# Features to Remove
+---
 
-## Database Connection Pool
-- Create singleton database connectivity pool
-- Manage database connections
-- Pen.Lite does not need database at all
+# Features REMOVED
 
-## Auto Login
-- Automatically login with stored credentials
-- Load user data on app launch
-- Pen.Lite does not need user system at all
+The following features have been removed from Pen Lite:
 
-## Authentication
-- User Registration
-- User Login
-- User Logout
-- Password Reset
-- Pen.Lite does not need user system at all
+## ~~Database Connection Pool~~
+- ~~Create singleton database connectivity pool~~
+- ~~Manage database connections~~
+- **Reason**: Pen Lite is an offline-first app with no database
 
-## Load User Information
-- Load user account information
-- Load user preferences
-- Pen.Lite does not need user system at all
+## ~~Auto Login~~
+- ~~Automatically login with stored credentials~~
+- ~~Load user data on app launch~~
+- **Reason**: Pen Lite has no user system
 
-## Content History
-- View list of enhanced content history
-- Copy from history
-- History limit management
-- Auto add to history
-- Pen.Lite does not need content history
+## ~~Authentication~~
+- ~~User Registration~~
+- ~~User Login~~
+- ~~User Logout~~
+- ~~Password Reset~~
+- **Reason**: Pen Lite has no user system
 
-## Account Tab (Settings)
-- View and edit user account information
-- Profile image management
-- Change password functionality
-- Pen.Lite does not need user system at all
+## ~~Load User Information~~
+- ~~Load user account information~~
+- ~~Load user preferences~~
+- **Reason**: Pen Lite has no user system
 
-## History Tab (Settings)
-- View content enhancement history
-- Manage history settings
-- Pen.Lite does not need content history
+## ~~Content History~~
+- ~~View list of enhanced content history~~
+- ~~Copy from history~~
+- ~~History limit management~~
+- ~~Auto add to history~~
+- **Reason**: Pen Lite does not store history
 
-## General Settings (Settings)
-- Configure general app settings
-- Shortcut key configuration
-- Pen.Lite does not need these settings
+## ~~Account Tab (Settings)~~
+- ~~View and edit user account information~~
+- ~~Profile image management~~
+- ~~Change password functionality~~
+- **Reason**: Pen Lite has no user system
 
-## Keyboard Shortcut
-- Global keyboard shortcut to open Pen window
-- Shortcut configuration
-- Pen.Lite does not need global shortcuts
+## ~~History Tab (Settings)~~
+- ~~View content enhancement history~~
+- ~~Manage history settings~~
+- **Reason**: Pen Lite does not store history
 
-## Database Operations
-- CRUD operations for user data
-- CRUD operations for AI connections
-- CRUD operations for prompts
-- CRUD operations for history
-- Pen.Lite does not need database at all
+## ~~General Settings (Settings)~~
+- ~~Configure general app settings~~
+- ~~Shortcut key configuration~~
+- **Reason**: Pen Lite has no global shortcuts
+
+## ~~Keyboard Shortcut~~
+- ~~Global keyboard shortcut to open Pen window~~
+- ~~Shortcut configuration~~
+- **Reason**: Pen Lite has no global shortcuts
+
+## ~~Database Operations~~
+- ~~CRUD operations for user data~~
+- ~~CRUD operations for AI connections~~
+- ~~CRUD operations for prompts~~
+- ~~CRUD operations for history~~
+- **Reason**: Pen Lite uses local JSON files instead of database
