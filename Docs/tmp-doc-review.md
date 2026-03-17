@@ -137,7 +137,7 @@ The following functionalities are implemented but lack formal user stories:
 Tab View Frame:
 - X: 20px (tabViewXOffset)
 - Y: 20px (tabViewYOffset)
-- Width: 600 - 40 = 560px (windowWidth - tabViewWidthOffset)
+- Width: 600 - 80 = 520px (windowWidth - tabViewWidthOffset)
 - Height: 518 - 100 = 418px (windowHeight - tabViewHeightOffset)
 ```
 
