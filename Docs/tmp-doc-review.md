@@ -119,7 +119,43 @@ The following functionalities are implemented but lack formal user stories:
 
 ---
 
-## 6. Conclusion
+## 6. UI Component Reference
+
+### Settings Window
+
+| Component | Position (x, y) | Size (width × height) |
+|-----------|-----------------|----------------------|
+| **Window** | - | 600 × 518 |
+| **Title** | (70, from top) | 200 × 30 |
+| **Tab View** | (20, 20) | 560 × 418 |
+| **Language Label** | (380, 473) | 100 × 20 |
+| **Language Dropdown** | (460, 473) | 100 × 20 |
+
+### Tab View Calculation
+
+```
+Tab View Frame:
+- X: 20px (tabViewXOffset)
+- Y: 20px (tabViewYOffset)
+- Width: 600 - 40 = 560px (windowWidth - tabViewWidthOffset)
+- Height: 518 - 100 = 418px (windowHeight - tabViewHeightOffset)
+```
+
+### Pen Window
+
+| Component | Position (x, y) | Size (width × height) |
+|-----------|-----------------|----------------------|
+| **Window** | - | 378 × 388 |
+| **Enhanced Text Container** | (20, 120) | 338 × 198 |
+| **Original Text Container** | (20, 258) | 338 × 88 |
+| **Controller Container** | (20, 228) | 338 × 30 |
+| **Prompts Dropdown** | - | 222 × 20 |
+| **Provider Dropdown** | - | 110 × 20 |
+| **Footer** | (0, 0) | 378 × 30 |
+
+---
+
+## 7. Conclusion
 
 **Documentation cleanup is 100% COMPLETE.** 
 
