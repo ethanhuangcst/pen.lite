@@ -21,7 +21,6 @@ class NewOrEditPrompt: BaseWindow, NSTextViewDelegate {
     private let saveButton = FocusableButton()
     private let cancelButton = FocusableButton()
     private let deleteButton = FocusableButton()
-    private let defaultPromptCheckbox = NSButton()
     
     private var prompt: Prompt?
     private var isNewPrompt: Bool
@@ -85,15 +84,11 @@ class NewOrEditPrompt: BaseWindow, NSTextViewDelegate {
         if let prompt = prompt {
             promptNameField.stringValue = prompt.promptName
             promptTextField.string = prompt.promptText
-            defaultPromptCheckbox.state = prompt.isDefault ? .on : .off
-            defaultPromptCheckbox.isHidden = prompt.isDefault
             promptPlaceholderLabel.isHidden = true
         } else {
             promptNameField.stringValue = ""
             promptNameField.placeholderString = LocalizationService.shared.localizedString(for: "enter_prompt_name_placeholder")
             promptTextField.string = ""
-            defaultPromptCheckbox.state = .off
-            defaultPromptCheckbox.isHidden = false
             promptPlaceholderLabel.isHidden = false
         }
         
@@ -168,68 +163,78 @@ class NewOrEditPrompt: BaseWindow, NSTextViewDelegate {
         let buttonSpacing: CGFloat = 20
         
         // Button order: Cancel, Delete, Save
-        // Cancel button (leftmost)
-        cancelButton.frame = NSRect(x: windowSize.width - buttonWidth - 20 - buttonWidth - buttonSpacing - buttonWidth - buttonSpacing, y: buttonY, width: buttonWidth, height: buttonHeight)
-        cancelButton.title = LocalizationService.shared.localizedString(for: "cancel_button")
-        cancelButton.bezelStyle = .rounded
-        cancelButton.target = self
-        cancelButton.action = #selector(cancelButtonClicked)
-        contentView.addSubview(cancelButton)
+        // For new prompts: Cancel, Save (no Delete)
+        // For edit mode: Cancel, Delete, Save
         
-        // Delete button (middle) - only for edit mode
-        deleteButton.frame = NSRect(x: windowSize.width - buttonWidth - 20 - buttonWidth - buttonSpacing, y: buttonY, width: buttonWidth, height: buttonHeight)
-        deleteButton.title = LocalizationService.shared.localizedString(for: "delete_button")
-        deleteButton.bezelStyle = .rounded
-        deleteButton.target = self
-        deleteButton.action = #selector(deleteButtonClicked)
-        deleteButton.wantsLayer = true
-        deleteButton.layer?.borderWidth = 1.0
-        deleteButton.layer?.borderColor = NSColor.systemRed.cgColor
-        deleteButton.layer?.cornerRadius = 6.0
-        deleteButton.contentTintColor = NSColor.systemRed
-        deleteButton.isHidden = isNewPrompt
-        contentView.addSubview(deleteButton)
-        
-        // Save button (rightmost)
-        saveButton.frame = NSRect(x: windowSize.width - buttonWidth - 20, y: buttonY, width: buttonWidth, height: buttonHeight)
-        saveButton.title = LocalizationService.shared.localizedString(for: "save_button")
-        saveButton.bezelStyle = .rounded
-        saveButton.target = self
-        saveButton.action = #selector(saveButtonClicked)
-        saveButton.wantsLayer = true
-        saveButton.layer?.borderWidth = 1.0
-        saveButton.layer?.borderColor = NSColor.systemGreen.cgColor
-        saveButton.layer?.cornerRadius = 6.0
-        contentView.addSubview(saveButton)
-        
-        // Default prompt checkbox - only show for new prompts
         if isNewPrompt {
-            defaultPromptCheckbox.frame = NSRect(x: 40, y: 26, width: 200, height: 32)
-            defaultPromptCheckbox.title = LocalizationService.shared.localizedString(for: "set_as_default_prompt")
-            defaultPromptCheckbox.bezelStyle = .regularSquare
-            defaultPromptCheckbox.setButtonType(.switch)
-            defaultPromptCheckbox.state = .off
-            contentView.addSubview(defaultPromptCheckbox)
+            // Cancel button (left of Save)
+            cancelButton.frame = NSRect(x: windowSize.width - buttonWidth - 20 - buttonWidth - buttonSpacing, y: buttonY, width: buttonWidth, height: buttonHeight)
+            cancelButton.title = LocalizationService.shared.localizedString(for: "cancel_button")
+            cancelButton.bezelStyle = .rounded
+            cancelButton.target = self
+            cancelButton.action = #selector(cancelButtonClicked)
+            contentView.addSubview(cancelButton)
+            
+            // Save button (rightmost)
+            saveButton.frame = NSRect(x: windowSize.width - buttonWidth - 20, y: buttonY, width: buttonWidth, height: buttonHeight)
+            saveButton.title = LocalizationService.shared.localizedString(for: "save_button")
+            saveButton.bezelStyle = .rounded
+            saveButton.target = self
+            saveButton.action = #selector(saveButtonClicked)
+            saveButton.wantsLayer = true
+            saveButton.layer?.borderWidth = 1.0
+            saveButton.layer?.borderColor = NSColor.systemGreen.cgColor
+            saveButton.layer?.cornerRadius = 6.0
+            contentView.addSubview(saveButton)
+        } else {
+            // Edit mode: Cancel, Delete, Save
+            // Cancel button (leftmost)
+            cancelButton.frame = NSRect(x: windowSize.width - buttonWidth - 20 - buttonWidth - buttonSpacing - buttonWidth - buttonSpacing, y: buttonY, width: buttonWidth, height: buttonHeight)
+            cancelButton.title = LocalizationService.shared.localizedString(for: "cancel_button")
+            cancelButton.bezelStyle = .rounded
+            cancelButton.target = self
+            cancelButton.action = #selector(cancelButtonClicked)
+            contentView.addSubview(cancelButton)
+            
+            // Delete button (middle)
+            deleteButton.frame = NSRect(x: windowSize.width - buttonWidth - 20 - buttonWidth - buttonSpacing, y: buttonY, width: buttonWidth, height: buttonHeight)
+            deleteButton.title = LocalizationService.shared.localizedString(for: "delete_button")
+            deleteButton.bezelStyle = .rounded
+            deleteButton.target = self
+            deleteButton.action = #selector(deleteButtonClicked)
+            deleteButton.wantsLayer = true
+            deleteButton.layer?.borderWidth = 1.0
+            deleteButton.layer?.borderColor = NSColor.systemRed.cgColor
+            deleteButton.layer?.cornerRadius = 6.0
+            deleteButton.contentTintColor = NSColor.systemRed
+            contentView.addSubview(deleteButton)
+            
+            // Save button (rightmost)
+            saveButton.frame = NSRect(x: windowSize.width - buttonWidth - 20, y: buttonY, width: buttonWidth, height: buttonHeight)
+            saveButton.title = LocalizationService.shared.localizedString(for: "save_button")
+            saveButton.bezelStyle = .rounded
+            saveButton.target = self
+            saveButton.action = #selector(saveButtonClicked)
+            saveButton.wantsLayer = true
+            saveButton.layer?.borderWidth = 1.0
+            saveButton.layer?.borderColor = NSColor.systemGreen.cgColor
+            saveButton.layer?.cornerRadius = 6.0
+            contentView.addSubview(saveButton)
         }
         
         if let prompt = prompt {
             promptNameField.stringValue = prompt.promptName
             promptTextField.string = prompt.promptText
-            defaultPromptCheckbox.state = prompt.isDefault ? .on : .off
-            defaultPromptCheckbox.isHidden = prompt.isDefault
             promptPlaceholderLabel.isHidden = true
         } else {
             promptNameField.placeholderString = LocalizationService.shared.localizedString(for: "enter_prompt_name_placeholder")
             promptTextField.string = ""
-            defaultPromptCheckbox.state = .off
-            defaultPromptCheckbox.isHidden = false
             promptPlaceholderLabel.isHidden = false
         }
         
         promptNameField.nextKeyView = promptTextField
         promptTextField.nextKeyView = cancelButton
-        cancelButton.nextKeyView = deleteButton
-        deleteButton.nextKeyView = saveButton
+        cancelButton.nextKeyView = saveButton
         saveButton.nextKeyView = promptNameField
         
         initialFirstResponder = promptNameField
@@ -246,7 +251,7 @@ class NewOrEditPrompt: BaseWindow, NSTextViewDelegate {
             return
         }
         
-        let isDefault = defaultPromptCheckbox.state == .on
+        let isDefault = prompt?.isDefault ?? false
         
         if let existingPrompt = prompt {
             let updatedPrompt = Prompt(

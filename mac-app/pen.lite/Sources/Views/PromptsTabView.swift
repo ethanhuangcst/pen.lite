@@ -169,7 +169,7 @@ class PromptsTabView: NSView, NSTableViewDataSource, NSTableViewDelegate {
         tableView.addTableColumn(nameColumn)
         
         let promptColumn = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("prompt"))
-        promptColumn.title = LocalizationService.shared.localizedString(for: "prompt_column")
+        promptColumn.title = LocalizationService.shared.localizedString(for: "prompt_text_column")
         promptColumn.width = 380
         tableView.addTableColumn(promptColumn)
         
