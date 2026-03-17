@@ -47,7 +47,7 @@ struct UILayoutConstants {
         
         static let tabViewXOffset: CGFloat = 20
         static let tabViewYOffset: CGFloat = 20
-        static let tabViewWidthOffset: CGFloat = 40
+        static let tabViewWidthOffset: CGFloat = 80
         static let tabViewHeightOffset: CGFloat = 100
     }
     
