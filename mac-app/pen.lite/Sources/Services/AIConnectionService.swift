@@ -2,6 +2,7 @@ import Foundation
 
 class AIConnectionService {
     static let shared = AIConnectionService()
+    static let connectionsDidChangeNotification = Notification.Name("AIConnectionsDidChangeNotification")
     
     private let fileStorage = FileStorageService.shared
     private let jsonEncoder = JSONEncoder()
@@ -26,6 +27,7 @@ class AIConnectionService {
         let fileURL = fileStorage.getAIConnectionsFile()
         let data = try jsonEncoder.encode(connections)
         try fileStorage.writeFile(data: data, to: fileURL)
+        NotificationCenter.default.post(name: Self.connectionsDidChangeNotification, object: nil)
     }
     
     func addConnection(_ connection: AIConnectionModel) throws {

@@ -49,8 +49,55 @@ class PenDelegate: NSObject, NSApplicationDelegate {
         // Create a simple window
         createMainWindow()
         
+        // Setup notification observers for real-time updates
+        setupNotificationObservers()
+        
         // Perform 3-step initialization process
         performInitialization()
+    }
+    
+    private func setupNotificationObservers() {
+        // Observe AI connection changes
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(aiConnectionsDidChange(_:)),
+            name: AIConnectionService.connectionsDidChangeNotification,
+            object: nil
+        )
+        
+        // Observe prompt changes
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(promptsDidChange(_:)),
+            name: PromptService.promptsDidChangeNotification,
+            object: nil
+        )
+        
+        // Observe language changes
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(languageDidChange(_:)),
+            name: LocalizationService.languageDidChangeNotification,
+            object: nil
+        )
+    }
+    
+    @objc private func aiConnectionsDidChange(_ notification: Notification) {
+        Task {
+            await penWindowService?.reloadAIConnections()
+        }
+    }
+    
+    @objc private func promptsDidChange(_ notification: Notification) {
+        Task {
+            await penWindowService?.reloadPrompts()
+        }
+    }
+    
+    @objc private func languageDidChange(_ notification: Notification) {
+        Task {
+            await penWindowService?.reloadUI()
+        }
     }
     
     @objc private func performInitialization() {
@@ -327,7 +374,7 @@ class PenDelegate: NSObject, NSApplicationDelegate {
 
     
     @objc private func openSettings() {
-        closeOtherWindows()
+        // Don't close other windows - keep Pen window open for real-time updates
         
         if let window = settingsWindow {
             window.showAndFocus()

@@ -7,7 +7,7 @@ This document outlines the UI design specifications for the Prompts tab and rela
 
 ### 1.1 Layout
 - **Container**: NSView with white background
-- **Size**: 680x520 (matches Preferences window size)
+- **Size**: 680x520 (matches Settings window size)
 - **Padding**: 20px margins on all sides
 
 ### 1.2 UI Elements

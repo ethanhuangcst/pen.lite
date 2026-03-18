@@ -77,7 +77,7 @@
 ### 2.3 Auto-Switch Control
 
 #### UI Component
-- **Location**: General tab in Preferences window
+- **Location**: General tab in Settings window
 - **Control Type**: ON/OFF switch (NSSwitch)
 - **Label**: "Auto-switch appearance"
 - **Description**: "Automatically switch between light and dark mode based on system settings"
@@ -168,7 +168,7 @@
 ### 5.3 Migration Plan
 - **Phase 1**: Replace hardcoded colors with system dynamic colors
 - **Phase 2**: Add appearance change observer
-- **Phase 3**: Implement auto-switch control in Preferences
+- **Phase 3**: Implement auto-switch control in Settings
 - **Phase 4**: Update assets with light/dark variants
 - **Phase 5**: Test and refine
 
@@ -229,7 +229,7 @@
 - **Files to Update**:
   - `HistoryTabView.swift` (Line 39)
   - `ForgotPasswordWindow.swift` (Line 35, 45)
-  - `PreferencesWindow.swift` (Line 79, 106)
+  - `SettingsWindow.swift` (Line 79, 106)
   - `GeneralTabView.swift` (Line 22)
   - `PromptsTabView.swift` (Line 43, 145, 207, 495, 501)
   - `AIConfigurationTabView.swift` (Line 38, 153, 644, 650)
@@ -536,7 +536,7 @@
 
 ### 7.1 Overview
 
-The General tab in Preferences window provides a dropdown list for users to switch between supported languages. This section describes the implementation design for runtime language switching based on the existing i18n infrastructure.
+The General tab in Settings window provides a dropdown list for users to switch between supported languages. This section describes the implementation design for runtime language switching based on the existing i18n infrastructure.
 
 ### 7.2 Current Implementation Status
 
@@ -797,7 +797,7 @@ private func setupLanguageSection(_ section: NSView) {
    - `LoginWindow.swift`
    - `RegistrationWindow.swift`
    - `AccountTabView.swift`
-   - `PreferencesWindow.swift`
+   - `SettingsWindow.swift`
    - `GeneralTabView.swift`
    - `PromptsTabView.swift`
    - `HistoryTabView.swift`
@@ -827,7 +827,7 @@ private func setupLanguageSection(_ section: NSView) {
 | `LoginWindow.swift` | Add `languageDidChange()` handler |
 | `RegistrationWindow.swift` | Add `languageDidChange()` handler |
 | `AccountTabView.swift` | Add `languageDidChange()` handler |
-| `PreferencesWindow.swift` | Add `languageDidChange()` handler |
+| `SettingsWindow.swift` | Add `languageDidChange()` handler |
 | `PromptsTabView.swift` | Add `languageDidChange()` handler |
 | `HistoryTabView.swift` | Add `languageDidChange()` handler |
 | `AIConfigurationTabView.swift` | Add `languageDidChange()` handler |

@@ -588,6 +588,7 @@ class PenWindowService {
         hintLabel.font = NSFont.systemFont(ofSize: 10)
         hintLabel.textColor = NSColor.secondaryLabelColor
         hintLabel.alignment = .left
+        hintLabel.identifier = NSUserInterfaceItemIdentifier("pen_manual_input_hint")
         
         let sendButton = NSButton(frame: NSRect(x: 312, y: 2, width: 18, height: 18))
         sendButton.title = ""
@@ -1434,5 +1435,69 @@ class PenWindowService {
             }
         }
         return nil
+    }
+    
+    // MARK: - Real-time Update Methods
+    
+    func reloadAIConnections() async {
+        await loadAIConfigurations()
+    }
+    
+    func reloadPrompts() async {
+        await loadPrompts()
+    }
+    
+    func reloadUI() async {
+        await MainActor.run {
+            updateUIText()
+        }
+    }
+    
+    private func findViewWithIdentifier(_ view: NSView, identifier: NSUserInterfaceItemIdentifier) -> NSView? {
+        if view.identifier == identifier {
+            return view
+        }
+        for subview in view.subviews {
+            if let found = findViewWithIdentifier(subview, identifier: identifier) {
+                return found
+            }
+        }
+        return nil
+    }
+    
+    private func updateUIText() {
+        guard let contentView = window?.contentView else { return }
+        
+        if let instructionLabel = findViewWithIdentifier(contentView, identifier: NSUserInterfaceItemIdentifier("pen_footer_instruction")) as? NSTextField {
+            instructionLabel.stringValue = LocalizationService.shared.localizedString(for: "pen_footer_appname")
+        }
+        
+        if let autoLabel = findViewWithIdentifier(contentView, identifier: NSUserInterfaceItemIdentifier("pen_footer_auto_label")) as? NSTextField {
+            autoLabel.stringValue = LocalizationService.shared.localizedString(for: "pen_footer_auto")
+        }
+        
+        if let textLabel = findViewWithIdentifier(contentView, identifier: NSUserInterfaceItemIdentifier("pen_footer_lable")) as? NSTextField {
+            textLabel.stringValue = LocalizationService.shared.localizedString(for: "pen_footer_label")
+        }
+        
+        if let hintLabel = findViewWithIdentifier(contentView, identifier: NSUserInterfaceItemIdentifier("pen_manual_input_hint")) as? NSTextField {
+            hintLabel.stringValue = LocalizationService.shared.localizedString(for: "pen_manual_input_hint")
+        }
+        
+        if let pasteLabel = findViewWithIdentifier(contentView, identifier: NSUserInterfaceItemIdentifier("pen_manual_paste_text")) as? NSTextField {
+            pasteLabel.stringValue = LocalizationService.shared.localizedString(for: "paste_from_clipboard_simple")
+        }
+        
+        if let loadingLabel = findViewWithIdentifier(contentView, identifier: NSUserInterfaceItemIdentifier("pen_loading_text")) as? NSTextField {
+            loadingLabel.stringValue = LocalizationService.shared.localizedString(for: "pen_refining_content")
+        }
+        
+        if let originalTextField = findViewWithIdentifier(contentView, identifier: NSUserInterfaceItemIdentifier("pen_original_text_text")) as? NSTextField {
+            originalTextField.stringValue = LocalizationService.shared.localizedString(for: "pen_original_text_placeholder")
+        }
+        
+        if let enhancedTextField = findViewWithIdentifier(contentView, identifier: NSUserInterfaceItemIdentifier("pen_enhanced_text_text")) as? NSTextField {
+            enhancedTextField.stringValue = LocalizationService.shared.localizedString(for: "pen_enhanced_text_placeholder")
+        }
     }
 }

@@ -2,6 +2,7 @@ import Foundation
 
 class PromptService {
     static let shared = PromptService()
+    static let promptsDidChangeNotification = Notification.Name("PromptsDidChangeNotification")
     
     private let fileStorage = FileStorageService.shared
     private let jsonEncoder = JSONEncoder()
@@ -38,12 +39,14 @@ class PromptService {
         let fileURL = fileStorage.getPromptFile(named: prompt.id)
         let data = try jsonEncoder.encode(prompt)
         try fileStorage.writeFile(data: data, to: fileURL)
+        NotificationCenter.default.post(name: Self.promptsDidChangeNotification, object: nil)
     }
     
     func updatePrompt(_ prompt: Prompt) throws {
         let fileURL = fileStorage.getPromptFile(named: prompt.id)
         let data = try jsonEncoder.encode(prompt)
         try fileStorage.writeFile(data: data, to: fileURL)
+        NotificationCenter.default.post(name: Self.promptsDidChangeNotification, object: nil)
     }
     
     func deletePrompt(id: String) throws {
@@ -52,6 +55,7 @@ class PromptService {
         }
         let fileURL = fileStorage.getPromptFile(named: id)
         try fileStorage.deleteFile(at: fileURL)
+        NotificationCenter.default.post(name: Self.promptsDidChangeNotification, object: nil)
     }
     
     func canDeletePrompt() -> Bool {
