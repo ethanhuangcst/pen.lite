@@ -428,11 +428,15 @@ class PenDelegate: NSObject, NSApplicationDelegate {
     
     private func closeOtherWindows() {
         for window in NSApplication.shared.windows {
+            // Skip Settings window - keep it open for real-time updates
+            if window is SettingsWindow {
+                continue
+            }
             window.orderOut(nil)
         }
         
         window = nil
-        settingsWindow = nil
+        // Don't nil settingsWindow - keep it open
         newOrEditPromptWindow = nil
     }
     

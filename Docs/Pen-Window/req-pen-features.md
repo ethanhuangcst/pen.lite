@@ -24,17 +24,28 @@
 
 ## F1. Pen Window Startup and Initialization
 
-### US1. Close non-Pen windows when Pen window opens
-As a Pen user, I want Pen app to close all other windows when I open the Pen window, so that I can focus on the Pen window.
+### US1. Close non-Pen windows when Pen window opens (except Settings)
+As a Pen user, I want Pen app to close all other windows except Settings when I open the Pen window, so that I can focus on the Pen window while keeping Settings accessible.
 
 #### Acceptance Criteria
-- AC1. When Pen window opens, all other app windows are closed.
+- AC1. When Pen window opens, all other app windows are closed except Settings window.
 - AC2. Pen window remains active and focused.
+- AC3. Settings window stays open if it was open before Pen window opened.
 
 #### Scenarios
-Scenario F1-US1-S1: Close non-Pen windows on Pen window open
+Scenario F1-US1-S1: Close non-Pen windows on Pen window open (except Settings)
   Given Pen app is running
   And one or more non-Pen windows are open
+  And Settings window is open
+  When I open the Pen window
+  Then all non-Pen windows are closed except Settings window
+  And Settings window stays open
+  And Pen window stays open and focused
+
+Scenario F1-US1-S2: Close non-Pen windows when Settings is not open
+  Given Pen app is running
+  And one or more non-Pen windows are open
+  And Settings window is not open
   When I open the Pen window
   Then all non-Pen windows are closed
   And Pen window stays open and focused
