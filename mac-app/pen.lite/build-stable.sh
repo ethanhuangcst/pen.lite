@@ -11,7 +11,7 @@ echo "=========================================="
 
 # Configuration
 APP_NAME="Pen"
-VERSION="1.1.0"
+VERSION="1.1.1"
 BUILD_DIR=".build/release"
 APP_BUNDLE="${APP_NAME}.app"
 CERT_NAME="Pen Self-Signed"

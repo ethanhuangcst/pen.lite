@@ -10,8 +10,9 @@ echo "Building Pen for Distribution"
 echo "=========================================="
 
 # Configuration
-APP_NAME="Pen"
-VERSION="1.1.0"
+APP_NAME="Pen Lite"
+EXECUTABLE_NAME="Pen"
+VERSION="1.1.1"
 BUILD_DIR=".build/release"
 APP_BUNDLE="${APP_NAME}.app"
 
@@ -32,15 +33,15 @@ mkdir -p "${APP_BUNDLE}/Contents/MacOS"
 mkdir -p "${APP_BUNDLE}/Contents/Resources"
 
 # Copy executable
-cp "${BUILD_DIR}/${APP_NAME}" "${APP_BUNDLE}/Contents/MacOS/${APP_NAME}"
+cp "${BUILD_DIR}/${EXECUTABLE_NAME}" "${APP_BUNDLE}/Contents/MacOS/${EXECUTABLE_NAME}"
 
 # Copy Info.plist
 cp Info.plist "${APP_BUNDLE}/Contents/Info.plist"
 
 # Update Info.plist with actual values
-/usr/libexec/PlistBuddy -c "Set :CFBundleExecutable ${APP_NAME}" "${APP_BUNDLE}/Contents/Info.plist"
+/usr/libexec/PlistBuddy -c "Set :CFBundleExecutable ${EXECUTABLE_NAME}" "${APP_BUNDLE}/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c "Set :CFBundleName ${APP_NAME}" "${APP_BUNDLE}/Contents/Info.plist"
-/usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier com.penai.${APP_NAME}" "${APP_BUNDLE}/Contents/Info.plist"
+/usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier com.penai.PenLite" "${APP_BUNDLE}/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${VERSION}" "${APP_BUNDLE}/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${VERSION}" "${APP_BUNDLE}/Contents/Info.plist"
 
@@ -56,51 +57,51 @@ if [ -f "Resources/Assets/AppIcon.icns" ]; then
     echo "  App icon: AppIcon.icns"
 elif [ -f "Resources/Assets/logo.png" ]; then
     echo "  Generating AppIcon.icns from logo.png..."
-    mkdir -p Pen.iconset
-    sips -z 16 16 Resources/Assets/logo.png --out Pen.iconset/icon_16x16.png 2>/dev/null
-    sips -z 32 32 Resources/Assets/logo.png --out Pen.iconset/icon_16x16@2x.png 2>/dev/null
-    sips -z 32 32 Resources/Assets/logo.png --out Pen.iconset/icon_32x32.png 2>/dev/null
-    sips -z 64 64 Resources/Assets/logo.png --out Pen.iconset/icon_32x32@2x.png 2>/dev/null
-    sips -z 128 128 Resources/Assets/logo.png --out Pen.iconset/icon_128x128.png 2>/dev/null
-    sips -z 256 256 Resources/Assets/logo.png --out Pen.iconset/icon_128x128@2x.png 2>/dev/null
-    sips -z 256 256 Resources/Assets/logo.png --out Pen.iconset/icon_256x256.png 2>/dev/null
-    sips -z 512 512 Resources/Assets/logo.png --out Pen.iconset/icon_256x256@2x.png 2>/dev/null
-    sips -z 512 512 Resources/Assets/logo.png --out Pen.iconset/icon_512x512.png 2>/dev/null
-    sips -z 1024 1024 Resources/Assets/logo.png --out Pen.iconset/icon_512x512@2x.png 2>/dev/null
-    iconutil -c icns Pen.iconset -o "${APP_BUNDLE}/Contents/Resources/AppIcon.icns"
-    rm -rf Pen.iconset
+    mkdir -p AppIcon.iconset
+    sips -z 16 16 Resources/Assets/logo.png --out AppIcon.iconset/icon_16x16.png 2>/dev/null
+    sips -z 32 32 Resources/Assets/logo.png --out AppIcon.iconset/icon_16x16@2x.png 2>/dev/null
+    sips -z 32 32 Resources/Assets/logo.png --out AppIcon.iconset/icon_32x32.png 2>/dev/null
+    sips -z 64 64 Resources/Assets/logo.png --out AppIcon.iconset/icon_32x32@2x.png 2>/dev/null
+    sips -z 128 128 Resources/Assets/logo.png --out AppIcon.iconset/icon_128x128.png 2>/dev/null
+    sips -z 256 256 Resources/Assets/logo.png --out AppIcon.iconset/icon_128x128@2x.png 2>/dev/null
+    sips -z 256 256 Resources/Assets/logo.png --out AppIcon.iconset/icon_256x256.png 2>/dev/null
+    sips -z 512 512 Resources/Assets/logo.png --out AppIcon.iconset/icon_256x256@2x.png 2>/dev/null
+    sips -z 512 512 Resources/Assets/logo.png --out AppIcon.iconset/icon_512x512.png 2>/dev/null
+    sips -z 1024 1024 Resources/Assets/logo.png --out AppIcon.iconset/icon_512x512@2x.png 2>/dev/null
+    iconutil -c icns AppIcon.iconset -o "${APP_BUNDLE}/Contents/Resources/AppIcon.icns"
+    rm -rf AppIcon.iconset
     echo "  App icon: AppIcon.icns (generated from logo.png)"
 elif [ -f "Resources/Assets/icon.png" ]; then
     # Generate icns from png if needed
     echo "  Generating AppIcon.icns from icon.png..."
-    mkdir -p Pen.iconset
-    sips -z 16 16 Resources/Assets/icon.png --out Pen.iconset/icon_16x16.png 2>/dev/null
-    sips -z 32 32 Resources/Assets/icon.png --out Pen.iconset/icon_16x16@2x.png 2>/dev/null
-    sips -z 32 32 Resources/Assets/icon.png --out Pen.iconset/icon_32x32.png 2>/dev/null
-    sips -z 64 64 Resources/Assets/icon.png --out Pen.iconset/icon_32x32@2x.png 2>/dev/null
-    sips -z 128 128 Resources/Assets/icon.png --out Pen.iconset/icon_128x128.png 2>/dev/null
-    sips -z 256 256 Resources/Assets/icon.png --out Pen.iconset/icon_128x128@2x.png 2>/dev/null
-    sips -z 256 256 Resources/Assets/icon.png --out Pen.iconset/icon_256x256.png 2>/dev/null
-    sips -z 512 512 Resources/Assets/icon.png --out Pen.iconset/icon_256x256@2x.png 2>/dev/null
-    sips -z 512 512 Resources/Assets/icon.png --out Pen.iconset/icon_512x512.png 2>/dev/null
-    sips -z 1024 1024 Resources/Assets/icon.png --out Pen.iconset/icon_512x512@2x.png 2>/dev/null
-    iconutil -c icns Pen.iconset -o "${APP_BUNDLE}/Contents/Resources/AppIcon.icns"
-    rm -rf Pen.iconset
+    mkdir -p AppIcon.iconset
+    sips -z 16 16 Resources/Assets/icon.png --out AppIcon.iconset/icon_16x16.png 2>/dev/null
+    sips -z 32 32 Resources/Assets/icon.png --out AppIcon.iconset/icon_16x16@2x.png 2>/dev/null
+    sips -z 32 32 Resources/Assets/icon.png --out AppIcon.iconset/icon_32x32.png 2>/dev/null
+    sips -z 64 64 Resources/Assets/icon.png --out AppIcon.iconset/icon_32x32@2x.png 2>/dev/null
+    sips -z 128 128 Resources/Assets/icon.png --out AppIcon.iconset/icon_128x128.png 2>/dev/null
+    sips -z 256 256 Resources/Assets/icon.png --out AppIcon.iconset/icon_128x128@2x.png 2>/dev/null
+    sips -z 256 256 Resources/Assets/icon.png --out AppIcon.iconset/icon_256x256.png 2>/dev/null
+    sips -z 512 512 Resources/Assets/icon.png --out AppIcon.iconset/icon_256x256@2x.png 2>/dev/null
+    sips -z 512 512 Resources/Assets/icon.png --out AppIcon.iconset/icon_512x512.png 2>/dev/null
+    sips -z 1024 1024 Resources/Assets/icon.png --out AppIcon.iconset/icon_512x512@2x.png 2>/dev/null
+    iconutil -c icns AppIcon.iconset -o "${APP_BUNDLE}/Contents/Resources/AppIcon.icns"
+    rm -rf AppIcon.iconset
     echo "  App icon: AppIcon.icns (generated)"
 fi
 
 # Set permissions
-chmod +x "${APP_BUNDLE}/Contents/MacOS/${APP_NAME}"
+chmod +x "${APP_BUNDLE}/Contents/MacOS/${EXECUTABLE_NAME}"
 chmod -R 755 "${APP_BUNDLE}"
 
 # Sign the app with ad-hoc signature and specific identifier
 # The --identifier flag helps create a more stable signature
 echo "[4/6] Signing app..."
 codesign --deep --force --sign - \
-    --identifier "com.penai.Pen" \
+    --identifier "com.penai.PenLite" \
     --options runtime \
     "${APP_BUNDLE}"
-echo "  Signed with ad-hoc signature (identifier: com.penai.Pen)"
+echo "  Signed with ad-hoc signature (identifier: com.penai.PenLite)"
 
 # Create DMG
 echo "[5/6] Creating DMG installer..."
