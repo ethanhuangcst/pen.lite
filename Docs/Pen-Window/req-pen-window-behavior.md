@@ -65,3 +65,29 @@ The Pen window opens when the app is in online mode, and it opens in different p
   Then it should be positioned at:
   - X position = X position of the mouse cursor + 6px
   - Y position = Y position of the mouse cursor + 6px
+
+### User Story 4: Paste Button Behavior
+
+**As a user**, I want the paste button to work correctly in both auto and manual modes,
+**So that** I can easily paste content from clipboard regardless of my preferred input mode.
+
+#### Acceptance Criteria
+
+**Scenario: Paste in auto mode**
+  Given the app is in auto mode (auto copy clipboard = ON)
+  When I click the "paste from clipboard" button
+  Then the content is pasted from clipboard
+  And the enhancement is automatically triggered
+
+**Scenario: Paste in manual mode**
+  Given the app is in manual mode (auto copy clipboard = OFF)
+  When I click the "paste from clipboard" button
+  Then the content is pasted from clipboard to the manual input field
+  And the enhancement is NOT automatically triggered
+  And I can edit the text before manually triggering enhancement
+
+**Scenario: Copy refined content**
+  Given refined content is displayed in the enhanced text field
+  When I click on the refined content
+  Then the full refined content is copied to clipboard
+  And a confirmation message is displayed

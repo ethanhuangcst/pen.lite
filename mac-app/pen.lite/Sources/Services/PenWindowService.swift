@@ -388,6 +388,7 @@ class PenWindowService {
         clickableTextField.textColor = enhancedTextField.textColor
         clickableTextField.alignment = enhancedTextField.alignment
         clickableTextField.identifier = enhancedTextField.identifier
+        clickableTextField.toolTip = enhancedTextField.toolTip
         clickableTextField.wantsLayer = true
         clickableTextField.layer?.backgroundColor = NSColor.clear.cgColor
         clickableTextField.layer?.borderWidth = 1.0
@@ -403,25 +404,38 @@ class PenWindowService {
     }
     
     @objc private func handleEnhancedTextClick() {
-        guard let enhancedText = getEnhancedText() else { return }
+        guard let enhancedText = getEnhancedText() else { 
+            Logger.error("handleEnhancedTextClick: Failed to get enhanced text")
+            return 
+        }
         
+        Logger.debug("handleEnhancedTextClick: Copying text (length: \(enhancedText.count))")
         copyToClipboard(enhancedText)
         
         WindowManager.shared.displayPopupMessage(LocalizationService.shared.localizedString(for: "text_copied_to_clipboard"))
     }
     
     private func getEnhancedText() -> String? {
-        guard let contentView = window?.contentView else { return nil }
+        guard let contentView = window?.contentView else { 
+            Logger.error("getEnhancedText: No content view")
+            return nil 
+        }
         
         for subview in contentView.subviews {
             if subview.identifier?.rawValue == "pen_enhanced_text" {
-                for subview in subview.subviews {
-                    if let textField = subview as? NSTextField, textField.identifier?.rawValue == "pen_enhanced_text_text" {
-                        return textField.toolTip ?? textField.stringValue
+                for nestedSubview in subview.subviews {
+                    if let textField = nestedSubview as? NSTextField, textField.identifier?.rawValue == "pen_enhanced_text_text" {
+                        let result = textField.toolTip ?? textField.stringValue
+                        Logger.debug("getEnhancedText: Found field, toolTip=\(textField.toolTip != nil), stringValue=\(textField.stringValue.prefix(30))")
+                        return result
                     }
                 }
+                Logger.error("getEnhancedText: TextField not found in container")
+                return nil
             }
         }
+        
+        Logger.error("getEnhancedText: Container not found")
         return nil
     }
     
@@ -922,39 +936,42 @@ class PenWindowService {
             if isClipboardTextType() {
                 if let clipboardText = readClipboardText() {
                     if !clipboardText.isEmpty {
-                        // Check if clipboard content has changed
                         if !forceEnhance && clipboardText == currentClipboardContent {
                             return nil
                         }
                         
-                        // Scenario: Paste valid text from clipboard on window launch
-                        updateOriginalText(clipboardText)
-                        currentClipboardContent = clipboardText
-                        currentOriginalTextForEnhancement = clipboardText
+                        if inputMode == .auto {
+                            updateOriginalText(clipboardText)
+                            currentClipboardContent = clipboardText
+                            currentOriginalTextForEnhancement = clipboardText
+                        } else {
+                            if let textView = findManualInputTextView() {
+                                textView.string = clipboardText
+                                manualInputDraft = clipboardText
+                                currentOriginalTextForEnhancement = clipboardText
+                            }
+                            currentClipboardContent = clipboardText
+                        }
                         return clipboardText
                     } else {
-                        // Scenario: Handle empty clipboard
                         displayEmptyClipboardMessage()
                         currentClipboardContent = nil
                         currentOriginalTextForEnhancement = nil
                         return nil
                     }
                 } else {
-                    // Scenario: Handle clipboard read failure
-                    displayClipboardErrorMessage()
+                    displayNonTextClipboardMessage()
                     currentClipboardContent = nil
                     currentOriginalTextForEnhancement = nil
                     return nil
                 }
             } else {
-                // Scenario: Handle non-text clipboard content
                 displayNonTextClipboardMessage()
                 currentClipboardContent = nil
                 currentOriginalTextForEnhancement = nil
                 return nil
             }
         } catch {
-            // Scenario: Handle clipboard read failure
             Logger.error("Error reading clipboard: \(error)")
             displayClipboardErrorMessage()
             currentClipboardContent = nil
@@ -1084,15 +1101,18 @@ class PenWindowService {
     }
     
     func updateEnhancedText(_ text: String) {
-        guard let contentView = window?.contentView else { return }
+        guard let contentView = window?.contentView else { 
+            Logger.error("updateEnhancedText: No content view")
+            return 
+        }
         
         for subview in contentView.subviews {
             if let container = subview as? NSView, container.identifier?.rawValue == "pen_enhanced_text" {
-                for subview in container.subviews {
-                    if let textField = subview as? NSTextField, textField.identifier?.rawValue == "pen_enhanced_text_text" {
+                for nestedSubview in container.subviews {
+                    if let textField = nestedSubview as? NSTextField, textField.identifier?.rawValue == "pen_enhanced_text_text" {
                         textField.stringValue = trimTextToFitLines(text, in: textField, maxLines: enhancedTextMaxVisibleLines)
-                        
                         textField.toolTip = text
+                        Logger.debug("updateEnhancedText: Set text (length: \(text.count)), toolTip set: \(textField.toolTip != nil)")
                         break
                     }
                 }
@@ -1274,13 +1294,11 @@ class PenWindowService {
     // MARK: - Event Handling Methods
     
     @objc private func handlePasteButton() {
-        if inputMode == .manual {
-            return
-        }
-        
         if loadClipboardContent(forceEnhance: true) != nil {
-            Task {
-                await enhanceText()
+            if inputMode == .auto {
+                Task {
+                    await enhanceText()
+                }
             }
         }
     }

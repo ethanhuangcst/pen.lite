@@ -4,15 +4,11 @@ class ClickableTextField: NSTextField {
     var clickAction: (() -> Void)?
     
     override func mouseDown(with event: NSEvent) {
-        // Trigger the closure if set
         clickAction?()
         
-        // Trigger the target-action if set
         if let target = target, let action = action {
             NSApp.sendAction(action, to: target, from: self)
         }
-        
-        super.mouseDown(with: event)
     }
     
     override var acceptsFirstResponder: Bool {
