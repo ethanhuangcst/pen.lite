@@ -1,138 +1,114 @@
-# Plan: Keep Settings Window Open When Pen Window Opens
+# Bug #1 Deep Analysis (Focus Issue - CONFIRMED)
+
+## User's Hypothesis (VERIFIED ✅)
+
+The user's hypothesis is correct:
+- After clicking the paste from clipboard button, the original text field gets focus
+- This requires clicking refined text field twice:
+- First click: activates the refined text field
+- Second click: copies content to clipboard
+
+## Root Cause Analysis
+
+### 1. `ClickableTextField` Focus Behavior
+
+Looking at the `ClickableTextField` implementation:
+
+```swift
+class ClickableTextField: NSTextField {
+    var clickAction: (() -> Void)?
+    
+    override func mouseDown(with event: NSEvent) {
+        // Trigger the closure if set
+        clickAction?()
+        
+        // Trigger the target-action if set
+        if let target = target, let action = action {
+            NSApp.sendAction(action, to: target, from: self)
+        }
+        
+        super.mouseDown(with: event)  // <-- PROBLEM: This steals focus
+    }
+    
+    override var acceptsFirstResponder: Bool {
+        return true  // Always allows becoming first responder
+    }
+    
+    override func becomeFirstResponder() -> Bool {
+        return true  // Always allows becoming first responder
+    }
+}
+```
+
+### 2. The Problem: `super.mouseDown(with: event)` Steals Focus
+
+When `super.mouseDown(with: event)` is called (line 15), it calls the parent's `mouseDown` method, which for `NSTextField`:
+1. Changes cursor to I-beam
+2. May trigger selection handling
+3. **Causes the text field to become first responder**
+
+### 3. Flow Analysis
+
+1. User clicks paste button
+2. `loadClipboardContent()` updates original text field
+3. `updateOriginalText()` sets text value
+4. Original text field may become first responder (due to `super.mouseDown`)
+5. User clicks refined text field
+6. **First click**: Focus shifts from original text field to refined text field
+7. **Second click**: The click event is properly triggered
+
+### 4. Why Clicking Original Text Field Fixes It Issue
+
+When user clicks `pen_original_text_text`:
+- That field is already first responder
+- Clicking doesn't change focus state
+- But triggers some internal event that may "reset" the window's focus state
+
+## Solution
+
+### Recommended Fix: Remove `super.mouseDown` Call
+
+**File**: `Sources/Views/ClickableTextField.swift`
+
+**Change**:
+```swift
+override func mouseDown(with event: NSEvent) {
+    // Trigger the closure if set
+    clickAction?()
+    
+    // Trigger the target-action if set
+    if let target = target, let action = action {
+        NSApp.sendAction(action, to: target, from: self)
+    }
+    
+    // Don't call super.mouseDown to avoid focus stealing
+}
+```
+
+### Why This Works
+1. We don't call `super.mouseDown`, so the text field doesn't become first responder
+2. Focus stays where it is
+3. Single click works correctly
+
+## Implementation Plan
+
+### Step 1: Update `ClickableTextField.swift`
+Remove the call to `super.mouseDown(with: event)` to prevent focus stealing.
+
+### Step 2: Build and Test
+1. Build and run the app
+2. Set auto copy clipboard = ON
+3. Copy some text to clipboard
+4. Open Pen window (should automatically enhance)
+5. Click refined text → should copy ✅
+6. Click "paste from clipboard" button
+7. Click refined text → should copy ✅ (single click)
+8. Verify console logs show the fix is working
 
 ## Summary
-When Pen window opens, keep Settings window open (instead of closing all non-Pen windows).
 
----
+| Issue | Root Cause | Fix |
+|-------|----------|-----|
+| Bug 1 | `super.mouseDown()` steals focus, requiring double-click | Remove `super.mouseDown()` call |
 
-## Part 1: Documentation Changes
-
-### 1.1 Files to Update
-
-| File | Changes |
-|------|---------|
-| `Docs/Pen-Window/req-pen-features.md` | Update F1-US1 to exclude Settings window from being closed |
-
-### 1.2 Specific Changes for req-pen-features.md
-
-**Current User Story F1-US1 (Lines 27-40):**
-```gherkin
-### US1. Close non-Pen windows when Pen window opens
-As a Pen user, I want Pen app to close all other windows when I open the Pen window, so that I can focus on the Pen window.
-
-#### Acceptance Criteria
-- AC1. When Pen window opens, all other app windows are closed.
-- AC2. Pen window remains active and focused.
-
-#### Scenarios
-Scenario F1-US1-S1: Close non-Pen windows on Pen window open
-  Given Pen app is running
-  And one or more non-Pen windows are open
-  When I open the Pen window
-  Then all non-Pen windows are closed
-  And Pen window stays open and focused
-```
-
-**New User Story F1-US1:**
-```gherkin
-### US1. Close non-Pen windows when Pen window opens (except Settings)
-As a Pen user, I want Pen app to close all other windows except Settings when I open the Pen window, so that I can focus on the Pen window while keeping Settings accessible.
-
-#### Acceptance Criteria
-- AC1. When Pen window opens, all other app windows are closed except Settings window.
-- AC2. Pen window remains active and focused.
-- AC3. Settings window stays open if it was open before Pen window opened.
-
-#### Scenarios
-Scenario F1-US1-S1: Close non-Pen windows on Pen window open (except Settings)
-  Given Pen app is running
-  And one or more non-Pen windows are open
-  And Settings window is open
-  When I open the Pen window
-  Then all non-Pen windows are closed except Settings window
-  And Settings window stays open
-  And Pen window stays open and focused
-
-Scenario F1-US1-S2: Close non-Pen windows when Settings is not open
-  Given Pen app is running
-  And one or more non-Pen windows are open
-  And Settings window is not open
-  When I open the Pen window
-  Then all non-Pen windows are closed
-  And Pen window stays open and focused
-```
-
----
-
-## Part 2: Code Changes
-
-### 2.1 Source Code Files
-
-| File | Changes |
-|------|---------|
-| `Sources/App/Pen.swift` | Modify `closeOtherWindows()` to skip Settings window |
-
-### 2.2 Specific Code Changes
-
-#### Pen.swift - closeOtherWindows() method (Lines 429-437)
-
-**Current Code:**
-```swift
-private func closeOtherWindows() {
-    for window in NSApplication.shared.windows {
-        window.orderOut(nil)
-    }
-    
-    window = nil
-    settingsWindow = nil
-    newOrEditPromptWindow = nil
-}
-```
-
-**New Code:**
-```swift
-private func closeOtherWindows() {
-    for window in NSApplication.shared.windows {
-        // Skip Settings window - keep it open for real-time updates
-        if window is SettingsWindow {
-            continue
-        }
-        window.orderOut(nil)
-    }
-    
-    window = nil
-    // Don't nil settingsWindow - keep it open
-    newOrEditPromptWindow = nil
-}
-```
-
----
-
-## Part 3: Implementation Order
-
-### Phase 1: Documentation Updates
-1. Update `Docs/Pen-Window/req-pen-features.md` with new User Story F1-US1
-
-### Phase 2: Code Changes
-1. Update `closeOtherWindows()` in `Pen.swift` to skip Settings window
-2. Remove `settingsWindow = nil` line to keep the reference
-
----
-
-## Part 4: Testing Checklist
-
-- [ ] Pen window opens and closes normally
-- [ ] Settings window stays open when Pen window opens
-- [ ] Other windows (like edit windows) are closed when Pen window opens
-- [ ] Settings window can still be closed manually
-- [ ] Documentation reflects the new behavior
-
----
-
-## Part 5: Files Summary
-
-### Documentation Files (1 file)
-- `Docs/Pen-Window/req-pen-features.md`
-
-### Code Files (1 file)
-- `mac-app/pen.lite/Sources/App/Pen.swift`
+**Priority**: High - This is a clear root cause with a straightforward fix.
